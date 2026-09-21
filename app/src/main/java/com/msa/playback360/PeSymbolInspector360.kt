@@ -40,7 +40,7 @@ object PeSymbolInspector360 {
     if((v and ordinalFlag)!=0L) funcs+=PeImportFunction360(dll,null,v and 0xffff,thunk+n*step)
     else {
      val np=PeInspector360.rvaToFileOffset(pe,v)?:break
-     if(!range(r,np,3))break;r.seek(np);u16(r);val name=cstr(r)
+     if(!range(r,np,3L))break;r.seek(np);u16(r);val name=cstr(r)
      funcs+=PeImportFunction360(dll,name,null,thunk+n*step)
     }
    }
@@ -49,22 +49,22 @@ object PeSymbolInspector360 {
  }
 
  private fun parseExports(r:RandomAccessFile,pe:PeReport360,d:PeDirectory360,out:MutableList<PeExport360>){
-  val p=PeInspector360.rvaToFileOffset(pe,d.rva)?:return;if(!range(r,p,40))return;r.seek(p)
+  val p=PeInspector360.rvaToFileOffset(pe,d.rva)?:return;if(!range(r,p,40L))return;r.seek(p)
   r.skipBytes(16);val ordinalBase=u32(r);val functionCount=u32(r).coerceAtMost(MAX_FUNCS.toLong()).toInt();val nameCount=u32(r).coerceAtMost(MAX_FUNCS.toLong()).toInt()
   val functionsRva=u32(r);val namesRva=u32(r);val ordinalsRva=u32(r)
   val names=mutableMapOf<Int,String>()
   for(i in 0 until nameCount){
    val no=PeInspector360.rvaToFileOffset(pe,namesRva+i*4L)?:break;val oo=PeInspector360.rvaToFileOffset(pe,ordinalsRva+i*2L)?:break
-   if(!range(r,no,4)||!range(r,oo,2))break;r.seek(no);val nr=u32(r);r.seek(oo);val idx=u16(r);val name=cstrRva(r,pe,nr);if(name!=null)names[idx]=name
+   if(!range(r,no,4L)||!range(r,oo,2L))break;r.seek(no);val nr=u32(r);r.seek(oo);val idx=u16(r);val name=cstrRva(r,pe,nr);if(name!=null)names[idx]=name
   }
   for(i in 0 until functionCount){
-   val fo=PeInspector360.rvaToFileOffset(pe,functionsRva+i*4L)?:break;if(!range(r,fo,4))break;r.seek(fo);val frva=u32(r);if(frva==0L)continue
+   val fo=PeInspector360.rvaToFileOffset(pe,functionsRva+i*4L)?:break;if(!range(r,fo,4L))break;r.seek(fo);val frva=u32(r);if(frva==0L)continue
    val forward=if(frva>=d.rva&&frva<d.rva+d.size)cstrRva(r,pe,frva) else null
    out+=PeExport360(names[i],ordinalBase+i,frva,forward)
   }
  }
 
- private fun cstrRva(r:RandomAccessFile,pe:PeReport360,rva:Long)=PeInspector360.rvaToFileOffset(pe,rva)?.let{p->if(range(r,p,1)){r.seek(p);cstr(r)}else null}
+ private fun cstrRva(r:RandomAccessFile,pe:PeReport360,rva:Long)=PeInspector360.rvaToFileOffset(pe,rva)?.let{p->if(range(r,p,1L)){r.seek(p);cstr(r)}else null}
  private fun cstr(r:RandomAccessFile):String{val b=ArrayList<Byte>();repeat(MAX_STRING){if(r.filePointer>=r.length())return@repeat;val x=r.read();if(x<=0)return b.toByteArray().toString(Charsets.US_ASCII);b+=x.toByte()};return b.toByteArray().toString(Charsets.US_ASCII)}
  private fun range(r:RandomAccessFile,p:Long,n:Long)=p>=0&&n>=0&&p<=r.length()&&n<=r.length()-p
  private fun u16(r:RandomAccessFile):Int{val a=r.readUnsignedByte();val b=r.readUnsignedByte();return a or(b shl 8)}
