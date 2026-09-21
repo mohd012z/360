@@ -5,10 +5,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.font.FontFamily
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.unit.dp
 import java.io.File
 
@@ -20,9 +24,10 @@ fun Mql360Screen(file:File, onBack:()->Unit) {
  var selected by remember{ mutableStateOf<MqlEvidence360?>(null) }
  var filter by remember{ mutableStateOf<MqlObjectKind?>(null) }
  var commandOutput by remember{ mutableStateOf<Pair<String,String>?>(null) }
+ var sourceView by remember{ mutableStateOf<MqlReconstruction360?>(null) }
 
  LaunchedEffect(file){
-  runCatching { MqlBinaryScanner360.scan(file) }
+  runCatching { withContext(Dispatchers.IO){ MqlBinaryScanner360.scan(file) } }
    .onSuccess { report=it }
    .onFailure { error=it.message ?: "MQL360 scan failed" }
  }
@@ -46,9 +51,9 @@ fun Mql360Screen(file:File, onBack:()->Unit) {
    }}
    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)){
     Button(onClick={
-     val x=MqlReconstructionEngine360.reconstruct(r,if(r.kind==MqlBinaryKind.EX4)MqlBinaryKind.MQ4 else MqlBinaryKind.MQ5)
-     commandOutput=("RECONSTRUCT • "+x.target+" • "+x.confidence+"%") to x.source
-    }){Text("RECONSTRUCT")}
+     sourceView=MqlReconstructionEngine360.reconstruct(r,if(r.kind==MqlBinaryKind.EX4)MqlBinaryKind.MQ4 else MqlBinaryKind.MQ5)
+    }){Text("SOURCE")}
+    OutlinedButton(onClick={query="/codecompare "}){Text("COMPARE")}
     OutlinedButton(onClick={filter=MqlObjectKind.DLL}){Text("DLL")}
     OutlinedButton(onClick={filter=MqlObjectKind.TRADING_API}){Text("TRADE")}
     OutlinedButton(onClick={filter=MqlObjectKind.INDICATOR}){Text("INDICATOR")}
@@ -86,6 +91,14 @@ fun Mql360Screen(file:File, onBack:()->Unit) {
     }
    }
   }
+ }
+ sourceView?.let{x->
+  AlertDialog(onDismissRequest={sourceView=null},
+   confirmButton={TextButton(onClick={sourceView=null}){Text("CLOSE")}},
+   title={Column{Text("RECONSTRUCTED "+x.target);Text("Evidence confidence "+x.confidence+"%",style=MaterialTheme.typography.labelSmall)}},
+   text={Box(Modifier.fillMaxWidth().heightIn(max=560.dp).verticalScroll(rememberScrollState()).horizontalScroll(rememberScrollState())){
+    Text(x.source,fontFamily=FontFamily.Monospace,style=MaterialTheme.typography.bodySmall)
+   }})
  }
  commandOutput?.let{v->
   AlertDialog(onDismissRequest={commandOutput=null},
