@@ -1,5 +1,7 @@
 package com.msa.playback360
+
 import android.widget.Toast
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -7,28 +9,80 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
+private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("Code"), FILES("Files"), LIVE("Live") }
+
 @Composable fun InspectorScreen(onBack:()->Unit){
- val context=LocalContext.current;val engine=remember{CopyExtractEngine(context)}
+ val context=LocalContext.current
+ val engine=remember{CopyExtractEngine(context)}
  var query by remember{mutableStateOf("")}
- var selected by remember{mutableStateOf(InspectObject("CLASS","Select/index an object",null,"classes*.dex","DEX -> package -> class",null,null,EvidenceSource.DEX,mapOf("Status" to "Prototype provenance + copy/extract workspace")))}
- Column(Modifier.fillMaxSize().padding(12.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(8.dp)){
-  Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){Text("360 CODEBRAIN",style=MaterialTheme.typography.headlineSmall);TextButton(onClick=onBack){Text("PLAYER")}}
-  OutlinedTextField(query,{query=it},Modifier.fillMaxWidth(),label={Text("/grep /target /class /file")},singleLine=true)
-  Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){
-   Button(onClick={selected=selected.copy(name=query.ifBlank{"Selected object"},realName=query.ifBlank{null})}){Text("TARGET")}
-   OutlinedButton(onClick={engine.copy("360 details",selected.copyDetails());Toast.makeText(context,"Copied details",Toast.LENGTH_SHORT).show()}){Text("COPY")}
-   OutlinedButton(onClick={val f=engine.extract(selected);Toast.makeText(context,"Extracted: "+f.name,Toast.LENGTH_SHORT).show()}){Text("EXTRACT")}
-  }
-  Card(Modifier.fillMaxWidth()){Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(5.dp)){
-   Text("/detail",style=MaterialTheme.typography.titleMedium);Text("Type: "+selected.type);Text("Name: "+selected.name)
-   Text("Real/resolved: "+(selected.realName?:"Unknown / not claimed"));Text("File: "+selected.sourceFile);Text("Location: "+selected.location)
-   Text("Offset: "+(selected.offset?.let{v->"0x"+v.toString(16).uppercase()}?:"N/A"));Text("Evidence: "+selected.source)
-   Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){TextButton(onClick={engine.copy("name",selected.name)}){Text("COPY NAME")};TextButton(onClick={engine.copy("location",selected.location)}){Text("COPY LOCATION")}}
+ var tab by remember{mutableStateOf(InspectorTab.OVERVIEW)}
+ var more by remember{mutableStateOf(false)}
+ var selected by remember{mutableStateOf(InspectObject(
+  "CLASS","Select/index an object",null,"classes*.dex","DEX -> package -> class",
+  null,null,EvidenceSource.DEX,mapOf("Status" to "Ready for target indexing")
+ ))}
+
+ Scaffold(
+  topBar={Surface(tonalElevation=2.dp){Row(Modifier.fillMaxWidth().padding(horizontal=10.dp,vertical=6.dp),horizontalArrangement=Arrangement.SpaceBetween){
+   Column(Modifier.weight(1f)){Text("360",style=MaterialTheme.typography.titleLarge);Text(selected.name,maxLines=1,overflow=TextOverflow.Ellipsis,style=MaterialTheme.typography.labelSmall)}
+   Row{TextButton(onClick={more=!more}){Text("MORE")};TextButton(onClick=onBack){Text("PLAYER")}}
+  }}},
+  bottomBar={NavigationBar{
+   InspectorTab.entries.forEach{item->NavigationBarItem(selected=tab==item,onClick={tab=item},icon={},label={Text(item.title)})}
   }}
-  Text("Which file supplies the data",style=MaterialTheme.typography.titleMedium)
-  FileSourceGuide.entries.forEach{entry->Card(Modifier.fillMaxWidth()){Row(Modifier.fillMaxWidth().padding(10.dp),horizontalArrangement=Arrangement.SpaceBetween){Column(Modifier.weight(1f)){Text(entry.first);Text(entry.second,style=MaterialTheme.typography.bodySmall)};TextButton(onClick={engine.copy(entry.first,entry.second)}){Text("COPY")}}}}
-  Card(Modifier.fillMaxWidth()){Column(Modifier.padding(12.dp)){Text("/filesdata  /compare  /showoffset  /realname",style=MaterialTheme.typography.titleSmall);Text("/ex4  /ex5  /strings  /mqlapi  /dll  /tradingmarkers",style=MaterialTheme.typography.titleSmall);Text("/extract  /readcode  /viewcode  /codemethod  /codestyle",style=MaterialTheme.typography.titleSmall);Text("/showcodetransparency  /codestress  /codefunction",style=MaterialTheme.typography.titleSmall);Text("/legal  /authorise  /approve",style=MaterialTheme.typography.titleSmall);Text("/safe  /readonly  /redact  /ratelimit  /audit",style=MaterialTheme.typography.titleSmall);Text("SAFE mode means low-impact + transparent: no stealth, anti-detection, log hiding, protection bypass, or security-tool evasion.");Text("Authorization gate: target must be owned/authorized and explicitly approved before deeper inspection; default is read-only.");Text("Workspace: "+engine.workspacePath());Text("EX4/EX5: read-only metadata, strings, URL, DLL, MQL API, trading-marker, SHA-256, entropy and offset inventory. No claim of MQ4/MQ5 source recovery.");Text("Extract creates details.txt + details.json + source-map.json without modifying the original file.")}}
+ ){pad->
+  Column(Modifier.padding(pad).fillMaxSize().padding(horizontal=10.dp,vertical=6.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
+   OutlinedTextField(query,{query=it},Modifier.fillMaxWidth(),placeholder={Text("Search or target…")},singleLine=true)
+   Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)){
+    Button(onClick={selected=selected.copy(name=query.ifBlank{"Selected object"},realName=query.ifBlank{null})}){Text("TARGET")}
+    OutlinedButton(onClick={engine.copy("360",selected.copyDetails());Toast.makeText(context,"Copied",Toast.LENGTH_SHORT).show()}){Text("COPY")}
+    OutlinedButton(onClick={val f=engine.extract(selected);Toast.makeText(context,"Extracted: "+f.name,Toast.LENGTH_SHORT).show()}){Text("EXTRACT")}
+    OutlinedButton(onClick={tab=InspectorTab.CODE}){Text("VIEW")}
+   }
+   when(tab){
+    InspectorTab.OVERVIEW->CompactOverview(selected,engine)
+    InspectorTab.CODE->CompactCode(selected,engine)
+    InspectorTab.FILES->CompactFiles(engine)
+    InspectorTab.LIVE->CompactLive(selected)
+   }
+   if(more) MoreSheet(engine,{more=false})
+  }
  }
+}
+
+@Composable private fun CompactOverview(o:InspectObject,e:CopyExtractEngine){
+ Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(6.dp)){
+  CompactCard("DETAIL",listOf("Type" to o.type,"Name" to o.name,"Real name" to (o.realName?:"Unknown"),"File" to o.sourceFile,"Location" to o.location,"Offset" to (o.offset?.let{"0x"+it.toString(16).uppercase()}?:"N/A"),"Evidence" to o.source.name),e)
+  Card(Modifier.fillMaxWidth()){Column(Modifier.padding(10.dp)){Text("SAFE",style=MaterialTheme.typography.titleSmall);Text("Read-only • originals preserved • secrets redacted • audit visible",style=MaterialTheme.typography.bodySmall)}}
+ }
+}
+@Composable private fun CompactCode(o:InspectObject,e:CopyExtractEngine){
+ Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(6.dp)){
+  CompactCard("CODE",listOf("Target" to o.name,"Source" to o.sourceFile,"Location" to o.location,"Representation" to "Evidence-based / reconstructed when applicable"),e)
+  Text("readcode • viewcode • method • function • transparency • stress",style=MaterialTheme.typography.labelSmall)
+ }
+}
+@Composable private fun CompactFiles(e:CopyExtractEngine){
+ Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(4.dp)){
+  FileSourceGuide.entries.forEach{entry->Card(Modifier.fillMaxWidth()){Row(Modifier.fillMaxWidth().padding(8.dp),horizontalArrangement=Arrangement.SpaceBetween){Column(Modifier.weight(1f)){Text(entry.first,style=MaterialTheme.typography.bodyMedium);Text(entry.second,style=MaterialTheme.typography.labelSmall)};TextButton(onClick={e.copy(entry.first,entry.second)}){Text("COPY")}}}}
+ }
+}
+@Composable private fun CompactLive(o:InspectObject){
+ Card(Modifier.fillMaxWidth()){Column(Modifier.padding(10.dp)){Text("LIVE / SESSION",style=MaterialTheme.typography.titleSmall);Text("Target: "+o.name);Text("Runtime observed: "+(o.source==EvidenceSource.RUNTIME));Text("Follow Live • Trace • Snapshot • Compare",style=MaterialTheme.typography.labelSmall)}}
+}
+@Composable private fun CompactCard(title:String,rows:List<Pair<String,String>>,e:CopyExtractEngine){
+ Card(Modifier.fillMaxWidth()){Column(Modifier.padding(10.dp),verticalArrangement=Arrangement.spacedBy(2.dp)){Text(title,style=MaterialTheme.typography.titleSmall);rows.forEach{r->Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){Column(Modifier.weight(1f)){Text(r.first,style=MaterialTheme.typography.labelSmall);Text(r.second,maxLines=2,overflow=TextOverflow.Ellipsis)};TextButton(onClick={e.copy(r.first,r.second)},contentPadding=PaddingValues(horizontal=6.dp)){Text("COPY")}}}}}
+}
+@Composable private fun MoreSheet(e:CopyExtractEngine,onClose:()->Unit){
+ Card(Modifier.fillMaxWidth()){Column(Modifier.padding(10.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(5.dp)){
+  Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){Text("TOOLS",style=MaterialTheme.typography.titleMedium);TextButton(onClick=onClose){Text("CLOSE")}}
+  Text("FILES  filesdata • compare • offset • realname")
+  Text("EX4/EX5  strings • mqlapi • dll • trading markers")
+  Text("CODE  extract • read • view • method • style • function • stress")
+  Text("SAFE  legal • authorise • approve • readonly • redact • audit")
+  Text("Workspace: "+e.workspacePath(),style=MaterialTheme.typography.labelSmall)
+ }}
 }
