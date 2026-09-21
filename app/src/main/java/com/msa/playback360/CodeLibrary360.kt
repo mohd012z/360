@@ -16,7 +16,7 @@ data class CodeLibraryEntry(
 
 object CodeLibrary360 {
  val entries=listOf(
-  CodeLibraryEntry(CodeFamily.DART,setOf("dart"),listOf("import 'dart:","void main("),"Dart","text",listOf("strings","imports","classes","functions","references","copy","extract")),
+  CodeLibraryEntry(CodeFamily.DART,setOf("dart"),listOf("import 'dart:","void main(","Dart"),"text",listOf("strings","imports","classes","functions","references","copy","extract")),
   CodeLibraryEntry(CodeFamily.HERMES,setOf("hbc","bundle"),listOf("Hermes","HBC"),"hermes-bytecode",listOf("header","strings","modules","functions","offsets","hex"),"Compiled Hermes is shown as bytecode/reconstructed evidence, not original JS."),
   CodeLibraryEntry(CodeFamily.JAVASCRIPT,setOf("js","mjs","cjs","jsx"),listOf("function ","=>","require(","import "),"javascript",listOf("source","modules","functions","urls","json","callbacks","format")),
   CodeLibraryEntry(CodeFamily.MQL4_SOURCE,setOf("mq4","mqh"),listOf("#property","OnTick","OrderSend"),"mql4",listOf("source","functions","inputs","includes","trading-api","urls")),
