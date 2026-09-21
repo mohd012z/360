@@ -34,6 +34,7 @@ object CodeDispatcher360 {
    "/troubleshootchart" -> result(command,"Code Brain • Troubleshoot Chart",CodeDiagnosticVisual360.troubleshoot(file,r))
    "/timewarp" -> result(command,"Code Brain • Timewarp",CodeDiagnosticVisual360.timeWarp(file,r))
    "/codepy","/phython","/python" -> result(command,"Python evidence",CodeLanguageDecompiler360.language(file,r,"python"))
+   "/pythonextract","/codepythonextract","/apkpython" -> result(command,"APK Python extraction",PythonExtractionBridge360.render(file,r)+"\n\n--- PYTHON ENGINE ---\n"+PythonExtractionBridge360.pythonScript())
    "/codebash","/bash" -> result(command,"Bash / shell evidence",CodeLanguageDecompiler360.language(file,r,"bash"))
    "/codec++" -> result(command,"C/C++ evidence",CodeLanguageDecompiler360.language(file,r,"cpp"))
    "/codedecompiler","/decompiler" -> result(command,"Evidence decompiler",CodeLanguageDecompiler360.decompile(file,r),warnings=listOf("Reconstruction is evidence-based and is not represented as original source."))
