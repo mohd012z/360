@@ -1,7 +1,7 @@
 package com.msa.playback360
 
 enum class CodeFamily {
- DART, HERMES, JAVASCRIPT, MQL4_SOURCE, MQL5_SOURCE, JIAGGU_MARKER,
+ DART, HERMES, JAVASCRIPT, MQL4_SOURCE, MQL5_SOURCE, M3U, M3U8, HLS_TAGS, JIAGGU_MARKER,
  ARM_NATIVE, CSS, CPP, C, JAVA, KOTLIN, SMALI, DEX, ELF, UNKNOWN
 }
 
@@ -21,6 +21,9 @@ object CodeLibrary360 {
   CodeLibraryEntry(CodeFamily.JAVASCRIPT,setOf("js","mjs","cjs","jsx"),listOf("function ","=>","require(","import "),"javascript",listOf("source","modules","functions","urls","json","callbacks","format")),
   CodeLibraryEntry(CodeFamily.MQL4_SOURCE,setOf("mq4","mqh"),listOf("#property","OnTick","OrderSend"),"mql4",listOf("source","functions","inputs","includes","trading-api","urls")),
   CodeLibraryEntry(CodeFamily.MQL5_SOURCE,setOf("mq5","mqh"),listOf("#property","OnTradeTransaction","MqlTradeRequest"),"mql5",listOf("source","functions","inputs","includes","trading-api","urls")),
+  CodeLibraryEntry(CodeFamily.M3U,setOf("m3u"),listOf("#EXTM3U","#EXTINF"),"playlist",listOf("entries","groups","names","logos","tvg-id","tvg-name","urls","headers","duplicates","copy","extract"),"Playlist inventory; credentials and sensitive query values should be redacted in reports."),
+  CodeLibraryEntry(CodeFamily.M3U8,setOf("m3u8"),listOf("#EXTM3U","#EXT-X-"),"hls",listOf("master-playlist","media-playlist","variants","bandwidth","resolution","codecs","audio","subtitles","segments","keys-metadata","target-duration","sequence","live-vod","urls"),"HLS structure inspection; do not expose protected key material."),
+  CodeLibraryEntry(CodeFamily.HLS_TAGS,setOf("m3u","m3u8"),listOf("#EXTINF","#EXT-X-STREAM-INF","#EXT-X-MEDIA","#EXT-X-KEY","#EXT-X-MAP","#EXT-X-TARGETDURATION","#EXT-X-MEDIA-SEQUENCE","#EXT-X-ENDLIST"),"hls-tags",listOf("tag-index","attributes","line-number","url-relation","timeline","validation"),"Indexes #EXT and #EXT-X metadata with source-line provenance."),
   CodeLibraryEntry(CodeFamily.JIAGGU_MARKER,setOf("so","dex","dat"),listOf("jiagu","360jiagu","libjiagu"),"protected-marker",listOf("identify","inventory","strings","metadata","offsets"),"Identification/inventory only; no protection bypass."),
   CodeLibraryEntry(CodeFamily.ARM_NATIVE,setOf("so","elf","bin"),listOf("ELF","arm64","aarch64","armeabi"),"arm",listOf("elf-header","abi","symbols","imports","exports","jni","strings","hex")),
   CodeLibraryEntry(CodeFamily.CSS,setOf("css","scss"),listOf("@media","display:","color:"),"css",listOf("source","selectors","variables","media-queries","urls")),
@@ -44,6 +47,11 @@ object CodeLibrary360 {
   "/js" to CodeFamily.JAVASCRIPT,
   "/mq4" to CodeFamily.MQL4_SOURCE,
   "/mq5" to CodeFamily.MQL5_SOURCE,
+  "/m3u" to CodeFamily.M3U,
+  "/m3u8" to CodeFamily.M3U8,
+  "/#" to CodeFamily.HLS_TAGS,
+  "/extinf" to CodeFamily.HLS_TAGS,
+  "/ext-x" to CodeFamily.HLS_TAGS,
   "/jiaggu" to CodeFamily.JIAGGU_MARKER,
   "/arm" to CodeFamily.ARM_NATIVE,
   "/css" to CodeFamily.CSS,
