@@ -5,6 +5,7 @@ import java.io.File
 object CodeDeepOrchestrator360 {
  fun run(file:File,r:MqlBinaryReport360):String=buildString {
   val structure=ExStructure360.inspect(file)
+  val adaptive=AdaptiveRegion360.merge(structure)
   val methods=MqlMethodCluster360.build(file,r)
   val relations=CodeRelationGraph360.build(file,r)
   val numeric=NumericEvidenceScanner360.scan(file)
@@ -23,6 +24,8 @@ object CodeDeepOrchestrator360 {
    " highEntropy="+structure.regions.count{it.label=="HIGH_ENTROPY"}+
    " textLike="+structure.regions.count{it.label=="TEXT_LIKE"}+
    " sparse="+structure.regions.count{it.label=="SPARSE_DATA"})
+  appendLine("  adaptiveRegions="+adaptive.size+" transitions="+adaptive.count{it.transitionScore>=25})
+  adaptive.take(12).forEach{appendLine("  0x"+it.offset.toString(16).uppercase()+" +"+it.size+" "+it.label+" windows="+it.windowCount+" transition="+it.transitionScore)}
   appendLine("2 EXTRACTION")
   appendLine("  semantic="+r.evidence.size+" numeric="+numeric.size+" native="+native.size+" gzipCandidates="+gzip.size)
   appendLine("3 METHOD MODEL")
