@@ -141,7 +141,9 @@ object MqlBinaryScanner360 {
   val selectedDomains=selected.details["domains"]?.split(",")?.filter{it.isNotBlank()}?.toSet().orEmpty()
   return report.evidence.asSequence().filter{it!==selected}.map{candidate->
    val domains=candidate.details["domains"]?.split(",")?.filter{it.isNotBlank()}?.toSet().orEmpty()
-   val distance=if(selected.offset!=null && candidate.offset!=null) kotlin.math.abs(selected.offset-candidate.offset) else Long.MAX_VALUE
+   val selectedOffset=selected.offset
+   val candidateOffset=candidate.offset
+   val distance=if(selectedOffset!=null && candidateOffset!=null) kotlin.math.abs(selectedOffset-candidateOffset) else Long.MAX_VALUE
    Triple(candidate,selectedDomains.intersect(domains).size,distance)
   }.filter{it.second>0 || it.third<=256}.sortedWith(compareByDescending<Triple<MqlEvidence360,Int,Long>>{it.second}.thenBy{it.third}).take(100).map{it.first}.toList()
  }
