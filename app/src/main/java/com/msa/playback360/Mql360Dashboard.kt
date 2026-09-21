@@ -236,3 +236,69 @@ private fun CommandPanel(command:String, file:File, report:MqlBinaryReport360) {
         }
     }
 }
+
+
+@Composable
+private fun ReferencePairPanel(
+    source:Pair<File,MqlBinaryReport360>?,
+    compiled:Pair<File,MqlBinaryReport360>?,
+    busy:Boolean,
+    error:String?,
+    onPickSource:()->Unit,
+    onPickCompiled:()->Unit
+) {
+    val verification=remember(source,compiled) {
+        if(source!=null && compiled!=null) MqlReferencePair360.compare(source.second,compiled.second) else null
+    }
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+            Text("REFERENCE PAIR VERIFICATION",style=MaterialTheme.typography.titleMedium)
+            Text("Use MQ4 ↔ EX4 or MQ5 ↔ EX5. Files are scanned read-only.")
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                Button(onClick=onPickSource,enabled=!busy){Text(if(source==null)"Select MQ4 / MQ5" else "Change Source")}
+                OutlinedButton(onClick=onPickCompiled,enabled=!busy){Text(if(compiled==null)"Select EX4 / EX5" else "Change Compiled")}
+            }
+            if(busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+            error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
+            PairFileCard("SOURCE",source)
+            PairFileCard("COMPILED",compiled)
+            verification?.let { v ->
+                val label=when {
+                    !v.validPair -> "PAIR MISMATCH"
+                    v.overallConfidence>=80 -> "HIGH"
+                    v.overallConfidence>=50 -> "MEDIUM"
+                    else -> "LOW"
+                }
+                Text("Reconstruction confidence: "+v.overallConfidence+"% • "+label,style=MaterialTheme.typography.titleMedium)
+                LinearProgressIndicator(progress={v.overallConfidence/100f},modifier=Modifier.fillMaxWidth())
+                if(!v.validPair) Text("Choose MQ4 with EX4, or MQ5 with EX5.",color=MaterialTheme.colorScheme.error)
+                v.metrics.forEach { m ->
+                    Card(Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(9.dp)) {
+                            Text(m.category,style=MaterialTheme.typography.titleSmall)
+                            Text("Matched "+m.matched+" / "+m.sourceCount+" source findings • compiled "+m.compiledCount)
+                            LinearProgressIndicator(progress={m.confidence/100f},modifier=Modifier.fillMaxWidth())
+                            Text(m.confidence.toString()+"% evidence overlap",style=MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
+                v.notes.forEach{Text(it,style=MaterialTheme.typography.labelSmall)}
+            }
+        }
+    }
+}
+
+@Composable
+private fun PairFileCard(label:String,pair:Pair<File,MqlBinaryReport360>?) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(9.dp)) {
+            Text(label,style=MaterialTheme.typography.labelSmall)
+            if(pair==null) Text("Not selected")
+            else {
+                Text(pair.first.name,style=MaterialTheme.typography.titleSmall)
+                Text(pair.second.kind.toString()+" • "+pair.second.size+" bytes • evidence "+pair.second.evidence.size)
+                Text("SHA-256 "+pair.second.sha256,maxLines=1,overflow=TextOverflow.Ellipsis,style=MaterialTheme.typography.labelSmall)
+            }
+        }
+    }
+}
