@@ -1,6 +1,8 @@
 package com.msa.playback360
 
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
@@ -35,6 +37,10 @@ private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("C
  var toolMenu by remember{mutableStateOf(false)}
  var bubbleX by remember{mutableFloatStateOf(0f)}
  var bubbleY by remember{mutableFloatStateOf(0f)}
+ var scan by remember{mutableStateOf<TargetScan360?>(null)}
+ val openTarget=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->
+  uri?.let{runCatching{TargetScanner360.scan(TargetImporter360.import(context,it))}.onSuccess{s->scan=s;selected=InspectObject("TARGET",s.file.name,s.file.name,s.file.name,"360workspace/imports/"+s.file.name,null,s.file.length(),EvidenceSource.INFERRED,mapOf("Kind" to s.binary.kind.name,"SHA-256" to s.binary.sha256,"Libraries" to s.libraries.joinToString{it.family.name},"Findings" to s.binary.findings.size.toString()))}.onFailure{Toast.makeText(context,it.message?:"Scan failed",Toast.LENGTH_LONG).show()}}
+ }
  var selected by remember{mutableStateOf(InspectObject(
   "CLASS","Select/index an object",null,"classes*.dex","DEX -> package -> class",
   null,null,EvidenceSource.DEX,mapOf("Status" to "Ready for target indexing")
@@ -48,6 +54,8 @@ private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("C
   bottomBar={}
  ){pad->
   Column(Modifier.padding(pad).fillMaxSize().padding(horizontal=sidePad,vertical=if(landscape)4.dp else 6.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
+   if(scan==null) Button(onClick={openTarget.launch(arrayOf("*/*"))},Modifier.fillMaxWidth()){Text("OPEN TARGET")}
+   else Text("Target: "+scan!!.file.name+" • "+scan!!.binary.kind+" • "+scan!!.objects.size+" indexed",style=MaterialTheme.typography.labelMedium)
    OutlinedTextField(query,{query=it},Modifier.fillMaxWidth(),placeholder={Text("Search or target…")},singleLine=true)
    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)){
     Button(onClick={selected=selected.copy(name=query.ifBlank{"Selected object"},realName=query.ifBlank{null})}){Text("TARGET")}
@@ -70,6 +78,7 @@ private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("C
      .padding(16.dp).pointerInput(Unit){detectDragGestures{change,drag->change.consume();bubbleX+=drag.x;bubbleY+=drag.y}}
    ){Text("360")}
    DropdownMenu(expanded=toolMenu,onDismissRequest={toolMenu=false},modifier=Modifier.align(Alignment.BottomEnd)){
+    DropdownMenuItem(text={Text("Open Target")},onClick={openTarget.launch(arrayOf("*/*"));toolMenu=false})
     DropdownMenuItem(text={Text("Overview")},onClick={tab=InspectorTab.OVERVIEW;toolMenu=false})
     DropdownMenuItem(text={Text("Code / Read / View")},onClick={tab=InspectorTab.CODE;toolMenu=false})
     DropdownMenuItem(text={Text("Files / Extract")},onClick={tab=InspectorTab.FILES;toolMenu=false})
