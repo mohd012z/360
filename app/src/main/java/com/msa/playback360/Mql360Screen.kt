@@ -44,6 +44,8 @@ fun Mql360Screen(file:File, onBack:()->Unit) {
   val r=report
   if(r==null && error==null){ LinearProgressIndicator(Modifier.fillMaxWidth()); Text("Scanning read-only evidence…") }
   if(r!=null){
+   Mql360Dashboard(file=file, report=r, onBack=onBack)
+   return@Column
    Card(Modifier.fillMaxWidth()){Column(Modifier.padding(10.dp)){
     Text(r.kind.name+" • "+r.size+" bytes")
     Text("SHA-256 "+r.sha256,maxLines=1,overflow=TextOverflow.Ellipsis,style=MaterialTheme.typography.labelSmall)
