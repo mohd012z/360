@@ -13,6 +13,10 @@ object CodeDispatcher360 {
   return when(command){
    "/code","/codeall","/code360","/codecode" -> result(command,"All evidence",MqlBinaryScanner360.summary(r),r.evidence)
    "/codesummary","/codemetadata","/metadata","/codebinary" -> result(command,"Target summary",MqlBinaryScanner360.summary(r))
+   "/structure","/codestructure","/coderegions" -> {
+    val s=ExStructure360.inspect(file)
+    result(command,"EX4/EX5 structure map",ExStructure360.summary(s))
+   }
    "/codestring" -> result(command,"String evidence","Normalized string findings.",r.evidence.filter{it.kind==MqlObjectKind.STRING})
    "/codeascii" -> encoded(command,r,"ASCII")
    "/codeutf","/codeunicode" -> encoded(command,r,"UTF")
