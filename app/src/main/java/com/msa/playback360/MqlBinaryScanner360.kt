@@ -6,23 +6,16 @@ import java.security.MessageDigest
 import kotlin.math.ln
 
 data class MqlBinaryReport360(
- val fileName:String,
- val kind:MqlBinaryKind,
- val size:Long,
- val sha256:String,
- val entropy:Double,
- val evidence:List<MqlEvidence360>
+ val fileName:String, val kind:MqlBinaryKind, val size:Long, val sha256:String,
+ val entropy:Double, val evidence:List<MqlEvidence360>
 ) {
  val strings:Int get()=evidence.count{it.kind==MqlObjectKind.STRING}
  val urls:Int get()=evidence.count{it.kind==MqlObjectKind.URL}
  val dlls:Int get()=evidence.count{it.kind==MqlObjectKind.DLL}
  val apis:Int get()=evidence.count{it.kind==MqlObjectKind.TRADING_API || it.kind==MqlObjectKind.MQL_EVENT || it.kind==MqlObjectKind.INDICATOR}
+ val unicodeStrings:Int get()=evidence.count{it.details["encoding"]=="UTF-16LE"}
 }
 
-/**
- * Streaming read-only scanner for EX4/EX5/MQ4/MQ5 evidence.
- * Keeps memory bounded and never modifies or executes the selected target.
- */
 object MqlBinaryScanner360 {
  private const val BUFFER=64*1024
  private const val MIN_STRING=4
@@ -36,8 +29,12 @@ object MqlBinaryScanner360 {
   var total=0L
   val evidence=ArrayList<MqlEvidence360>()
   val ascii=StringBuilder()
+  val utf16=StringBuilder()
   var asciiStart=0L
+  var utf16Start=0L
   var absolute=0L
+  var pendingUtf16Low:Int?=null
+  var pendingUtf16Offset=0L
 
   FileInputStream(file).use { input ->
    val buffer=ByteArray(BUFFER)
@@ -48,37 +45,48 @@ object MqlBinaryScanner360 {
     for(i in 0 until n){
      val u=buffer[i].toInt() and 0xff
      counts[u]++; total++
-     val printable=u in 32..126
-     if(printable){
+
+     if(u in 32..126){
       if(ascii.isEmpty()) asciiStart=absolute
       if(ascii.length<MAX_STRING) ascii.append(u.toChar())
+     } else flush(ascii,asciiStart,evidence,"ASCII")
+
+     val low=pendingUtf16Low
+     if(low==null){
+      if(u in 32..126){ pendingUtf16Low=u; pendingUtf16Offset=absolute }
+      else flush(utf16,utf16Start,evidence,"UTF-16LE")
      } else {
-      flush(ascii,asciiStart,evidence)
+      if(u==0){
+       if(utf16.isEmpty()) utf16Start=pendingUtf16Offset
+       if(utf16.length<MAX_STRING) utf16.append(low.toChar())
+      } else {
+       flush(utf16,utf16Start,evidence,"UTF-16LE")
+      }
+      pendingUtf16Low=null
      }
      absolute++
     }
    }
   }
-  flush(ascii,asciiStart,evidence)
+  flush(ascii,asciiStart,evidence,"ASCII")
+  flush(utf16,utf16Start,evidence,"UTF-16LE")
 
   val hash=digest.digest().joinToString(""){"%02x".format(it)}
   return MqlBinaryReport360(file.name,Mql360.kindFor(file.name),file.length(),hash,entropy(counts,total),evidence)
  }
 
- private fun flush(text:StringBuilder,start:Long,out:MutableList<MqlEvidence360>){
+ private fun flush(text:StringBuilder,start:Long,out:MutableList<MqlEvidence360>,encoding:String){
   if(text.length>=MIN_STRING && out.size<MAX_EVIDENCE){
    val value=text.toString()
    val matches=MqlCodeLibrary360.lookup(value)
-   if(matches.isEmpty()) {
-    out += Mql360.classifyString(value,start)
-   } else {
-    val base=Mql360.classifyString(value,start)
-    out += base.copy(details=mapOf(
-     "symbols" to matches.joinToString(","){it.name},
-     "domains" to matches.map{it.domain.name}.distinct().joinToString(","),
-     "categories" to matches.map{it.category}.distinct().joinToString(",")
-    ))
+   val base=Mql360.classifyString(value,start,if(encoding=="ASCII") "binary-string" else "binary-unicode")
+   val details=mutableMapOf("encoding" to encoding,"byteOffset" to start.toString())
+   if(matches.isNotEmpty()){
+    details["symbols"]=matches.joinToString(","){it.name}
+    details["domains"]=matches.map{it.domain.name}.distinct().joinToString(",")
+    details["categories"]=matches.map{it.category}.distinct().joinToString(",")
    }
+   out += base.copy(details=details)
   }
   text.setLength(0)
  }
@@ -94,10 +102,19 @@ object MqlBinaryScanner360 {
  }
 
  fun grep(report:MqlBinaryReport360,query:String):List<MqlEvidence360> =
-  report.evidence.filter {
-   it.value.contains(query,true) ||
-    it.details.values.any{v->v.contains(query,true)}
-  }
+  report.evidence.filter { it.value.contains(query,true) || it.details.values.any{v->v.contains(query,true)} }
+
+ fun atOffset(report:MqlBinaryReport360,offset:Long,radius:Long=64):List<MqlEvidence360> =
+  report.evidence.filter { e -> e.offset?.let { kotlin.math.abs(it-offset)<=radius } ?: false }.sortedBy{it.offset}
+
+ fun related(report:MqlBinaryReport360,selected:MqlEvidence360):List<MqlEvidence360> {
+  val selectedDomains=selected.details["domains"]?.split(",")?.filter{it.isNotBlank()}?.toSet().orEmpty()
+  return report.evidence.asSequence().filter{it!==selected}.map{candidate->
+   val domains=candidate.details["domains"]?.split(",")?.filter{it.isNotBlank()}?.toSet().orEmpty()
+   val distance=if(selected.offset!=null && candidate.offset!=null) kotlin.math.abs(selected.offset-candidate.offset) else Long.MAX_VALUE
+   Triple(candidate,selectedDomains.intersect(domains).size,distance)
+  }.filter{it.second>0 || it.third<=256}.sortedWith(compareByDescending<Triple<MqlEvidence360,Int,Long>>{it.second}.thenBy{it.third}).take(100).map{it.first}.toList()
+ }
 
  fun summary(report:MqlBinaryReport360):String =
   "MQL360 "+report.kind+" | "+report.fileName+
@@ -105,6 +122,7 @@ object MqlBinaryScanner360 {
    "\nSHA-256: "+report.sha256+
    "\nEntropy: "+"%.3f".format(report.entropy)+
    "\nEvidence: "+report.evidence.size+
+   "\nUnicode: "+report.unicodeStrings+
    "\nMQL/API/Indicator: "+report.apis+
    "\nDLL: "+report.dlls+
    "\nURL: "+report.urls
