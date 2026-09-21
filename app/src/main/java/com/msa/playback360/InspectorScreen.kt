@@ -29,6 +29,6 @@ import androidx.compose.ui.unit.dp
   }}
   Text("Which file supplies the data",style=MaterialTheme.typography.titleMedium)
   FileSourceGuide.entries.forEach{entry->Card(Modifier.fillMaxWidth()){Row(Modifier.fillMaxWidth().padding(10.dp),horizontalArrangement=Arrangement.SpaceBetween){Column(Modifier.weight(1f)){Text(entry.first);Text(entry.second,style=MaterialTheme.typography.bodySmall)};TextButton(onClick={engine.copy(entry.first,entry.second)}){Text("COPY")}}}}
-  Card(Modifier.fillMaxWidth()){Column(Modifier.padding(12.dp)){Text("/filesdata  /compare  /showoffset  /realname",style=MaterialTheme.typography.titleSmall);Text("Workspace: "+engine.workspacePath());Text("Extract creates details.txt + details.json + source-map.json without modifying the original APK.")}}
+  Card(Modifier.fillMaxWidth()){Column(Modifier.padding(12.dp)){Text("/filesdata  /compare  /showoffset  /realname",style=MaterialTheme.typography.titleSmall);Text("/ex4  /ex5  /strings  /mqlapi  /dll  /tradingmarkers",style=MaterialTheme.typography.titleSmall);Text("Workspace: "+engine.workspacePath());Text("EX4/EX5: read-only metadata, strings, URL, DLL, MQL API, trading-marker, SHA-256, entropy and offset inventory. No claim of MQ4/MQ5 source recovery.");Text("Extract creates details.txt + details.json + source-map.json without modifying the original file.")}}
  }
 }
