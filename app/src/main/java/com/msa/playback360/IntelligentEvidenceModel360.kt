@@ -43,12 +43,12 @@ object IntelligentEvidenceModel360 {
                     observe(item.value,kind,confirmed=true)
                 }
                 ReferenceState360.UNCERTAIN -> observe(item.value,kind,confirmed=false)
-                ReferenceState360.MISSING -> contradict(item.value,kind)
+                ReferenceState360.MISSING -> Unit // compiler optimization/container encoding may legitimately remove source-visible evidence
                 ReferenceState360.EXTRA -> Unit
             }
         }
         return "Reference feedback learned: matched="+deep.matched+
-            ", missing="+deep.missing+", uncertain="+deep.uncertain+
+            ", missing-neutral="+deep.missing+", uncertain="+deep.uncertain+
             ", model patterns="+patterns.size
     }
 
