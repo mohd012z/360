@@ -27,7 +27,7 @@ object PeSymbolInspector360 {
  private fun parseImports(r:RandomAccessFile,pe:PeReport360,d:PeDirectory360,out:MutableList<PeImportModule360>){
   val base=PeInspector360.rvaToFileOffset(pe,d.rva)?:return
   for(i in 0 until MAX_MODULES){
-   val p=base+i*20L;if(!range(r,p,20))break;r.seek(p)
+   val p=base+i*20L;if(!range(r,p,20L))break;r.seek(p)
    val oft=u32(r);u32(r);u32(r);val nameRva=u32(r);val ft=u32(r)
    if(oft==0L&&nameRva==0L&&ft==0L)break
    val dll=cstrRva(r,pe,nameRva)?:continue
