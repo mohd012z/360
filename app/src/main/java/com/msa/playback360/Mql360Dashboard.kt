@@ -262,6 +262,40 @@ private fun ReferencePairPanel(
             error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
             PairFileCard("SOURCE",source)
             PairFileCard("COMPILED",compiled)
+            if(source!=null && compiled!=null) {
+                val deep=remember(source,compiled){MqlDeepReference360.compare(source.second,compiled.second)}
+                Text("DEEP EVIDENCE COMPARISON",style=MaterialTheme.typography.titleMedium)
+                Text("Matched "+deep.matched+" • Missing "+deep.missing+" • Extra "+deep.extra+" • Uncertain "+deep.uncertain)
+                LinearProgressIndicator(progress={deep.confidence/100f},modifier=Modifier.fillMaxWidth())
+                Text("Deep verification confidence: "+deep.confidence+"%")
+                val groups=listOf(
+                    ReferenceState360.MATCHED,
+                    ReferenceState360.MISSING,
+                    ReferenceState360.EXTRA,
+                    ReferenceState360.UNCERTAIN
+                )
+                groups.forEach { state ->
+                    val rows=deep.items.filter{it.state==state}
+                    if(rows.isNotEmpty()) {
+                        Text(state.name+" ("+rows.size+")",style=MaterialTheme.typography.titleSmall)
+                        rows.take(40).forEach { item ->
+                            Card(Modifier.fillMaxWidth()) {
+                                Row(
+                                    Modifier.fillMaxWidth().padding(8.dp),
+                                    horizontalArrangement=Arrangement.SpaceBetween
+                                ) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(item.category,style=MaterialTheme.typography.labelSmall)
+                                        Text(item.value,maxLines=2,overflow=TextOverflow.Ellipsis)
+                                    }
+                                    Text(item.confidence.toString()+"%")
+                                }
+                            }
+                        }
+                        if(rows.size>40) Text("Showing first 40 of "+rows.size+" "+state.name.lowercase()+" findings.",style=MaterialTheme.typography.labelSmall)
+                    }
+                }
+            }
             verification?.let { v ->
                 val label=when {
                     !v.validPair -> "PAIR MISMATCH"
