@@ -69,6 +69,9 @@ object CodeDispatcher360 {
     if(off==null) usage(command,"Usage: /codeoffset 0x18A20") else result(command,"Offset 0x"+off.toString(16).uppercase(),"Nearby evidence +/-64 bytes.",MqlBinaryScanner360.atOffset(r,off))
    }
    "/codedll" -> byKind(command,r,MqlObjectKind.DLL,"DLL/native references")
+   "/codec++","/codec","/codec+","/codegz","/codegzip" -> {
+    result(command,"Native / compression extractor",NativeCompressionExtractor360.render(file))
+   }
    "/coderegionreconstruct","/codedeepreconstruct" -> {
     val target=when(arg.lowercase()){ "mq4"->MqlBinaryKind.MQ4; "mq5"->MqlBinaryKind.MQ5; else->if(r.kind==MqlBinaryKind.EX4)MqlBinaryKind.MQ4 else MqlBinaryKind.MQ5 }
     val src=MqlRegionReconstruction360.render(file,r,target)
