@@ -2,18 +2,23 @@ package com.msa.playback360
 
 import android.widget.Toast
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import androidx.compose.ui.platform.LocalConfiguration
 
-private enum class InspectorTab(val title:String,val compact:String){ OVERVIEW("Overview","Home"), CODE("Code","Code"), FILES("Files","Files"), LIVE("Live","Live"), TOOLS("Tools","Tools") }
+private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("Code"), FILES("Files"), LIVE("Live") }
 
 @Composable fun InspectorScreen(onBack:()->Unit){
  val context=LocalContext.current
@@ -27,6 +32,9 @@ private enum class InspectorTab(val title:String,val compact:String){ OVERVIEW("
  var query by remember{mutableStateOf("")}
  var tab by remember{mutableStateOf(InspectorTab.OVERVIEW)}
  var more by remember{mutableStateOf(false)}
+ var toolMenu by remember{mutableStateOf(false)}
+ var bubbleX by remember{mutableFloatStateOf(0f)}
+ var bubbleY by remember{mutableFloatStateOf(0f)}
  var selected by remember{mutableStateOf(InspectObject(
   "CLASS","Select/index an object",null,"classes*.dex","DEX -> package -> class",
   null,null,EvidenceSource.DEX,mapOf("Status" to "Ready for target indexing")
@@ -35,11 +43,9 @@ private enum class InspectorTab(val title:String,val compact:String){ OVERVIEW("
  Scaffold(
   topBar={Surface(tonalElevation=2.dp){Row(Modifier.fillMaxWidth().padding(horizontal=10.dp,vertical=6.dp),horizontalArrangement=Arrangement.SpaceBetween){
    Column(Modifier.weight(1f)){Text("360",style=MaterialTheme.typography.titleLarge);Text(selected.name,maxLines=1,overflow=TextOverflow.Ellipsis,style=MaterialTheme.typography.labelSmall)}
-   Row{TextButton(onClick={more=!more}){Text("MORE")};TextButton(onClick=onBack){Text("PLAYER")}}
+   Row{TextButton(onClick=onBack){Text("PLAYER")}}
   }}},
-  bottomBar={NavigationBar(windowInsets=NavigationBarDefaults.windowInsets){
-   InspectorTab.entries.forEach{item->NavigationBarItem(selected=tab==item,onClick={tab=item},icon={},label={Text(if(compact)item.compact else item.title,maxLines=1)})}
-  }}
+  bottomBar={}
  ){pad->
   Column(Modifier.padding(pad).fillMaxSize().padding(horizontal=sidePad,vertical=if(landscape)4.dp else 6.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
    OutlinedTextField(query,{query=it},Modifier.fillMaxWidth(),placeholder={Text("Search or target…")},singleLine=true)
@@ -54,9 +60,25 @@ private enum class InspectorTab(val title:String,val compact:String){ OVERVIEW("
     InspectorTab.CODE->CompactCode(selected,engine)
     InspectorTab.FILES->CompactFiles(engine)
     InspectorTab.LIVE->CompactLive(selected)
-    InspectorTab.TOOLS->MoreSheet(engine,{tab=InspectorTab.OVERVIEW})
    }
-   if(more && tab!=InspectorTab.TOOLS) MoreSheet(engine,{more=false})
+   if(more) MoreSheet(engine,{more=false})
+  }
+  Box(Modifier.fillMaxSize()){
+   FloatingActionButton(
+    onClick={toolMenu=!toolMenu},
+    modifier=Modifier.align(Alignment.BottomEnd).offset{IntOffset(bubbleX.roundToInt(),bubbleY.roundToInt())}
+     .padding(16.dp).pointerInput(Unit){detectDragGestures{change,drag->change.consume();bubbleX+=drag.x;bubbleY+=drag.y}}
+   ){Text("360")}
+   DropdownMenu(expanded=toolMenu,onDismissRequest={toolMenu=false},modifier=Modifier.align(Alignment.BottomEnd)){
+    DropdownMenuItem(text={Text("Overview")},onClick={tab=InspectorTab.OVERVIEW;toolMenu=false})
+    DropdownMenuItem(text={Text("Code / Read / View")},onClick={tab=InspectorTab.CODE;toolMenu=false})
+    DropdownMenuItem(text={Text("Files / Extract")},onClick={tab=InspectorTab.FILES;toolMenu=false})
+    DropdownMenuItem(text={Text("Live / Trace")},onClick={tab=InspectorTab.LIVE;toolMenu=false})
+    HorizontalDivider()
+    DropdownMenuItem(text={Text("All Functions")},onClick={more=true;toolMenu=false})
+    DropdownMenuItem(text={Text("Copy Current")},onClick={engine.copy("360",selected.copyDetails());toolMenu=false})
+    DropdownMenuItem(text={Text("Extract Current")},onClick={engine.extract(selected);toolMenu=false})
+   }
   }
  }
 }
