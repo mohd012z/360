@@ -62,8 +62,10 @@ private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("C
     web?.let{w->
      Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)){
       Button(onClick={
+       val sec=Security360.fromWeb(w.url)
        selected=InspectObject("WEB_TARGET",w.host,w.host,w.url,w.url,null,null,EvidenceSource.INFERRED,
-        mapOf("Scheme" to w.kind.name,"Host" to w.host,"Port" to (w.port?.toString()?:"default"),"Evidence" to w.evidence))
+        mapOf("Scheme" to w.kind.name,"Host" to w.host,"Port" to (w.port?.toString()?:"default"),
+         "Evidence" to w.evidence,"Security360" to SecurityEvidenceView360.summary(sec)))
        tab=InspectorTab.OVERVIEW
       }){Text("WEB TARGET")}
       OutlinedButton(onClick={engine.copy("Web URL",w.url)}){Text("COPY URL")}
@@ -147,6 +149,7 @@ private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("C
   Text("ANALYSIS  Semgrep • BIN • Grep • Strings")
   Text("TRACE IMPORT  Procmon logs • Wireshark captures")
   Text("DEFENSIVE  Phishing indicators • Malware triage")
+  Text("SECURITY360  Evidence • Map • Network • Process • File • Findings")
   Text("WEB CRYPTO  Encrypt • Decrypt (owned workspace data)")
   Text("LAYERS  Hidden • HiddenLayer • HiddenStack • HiddenLog • HiddenCache")
   Text("Also  Kotlin • Java • Smali • DEX • ELF")
