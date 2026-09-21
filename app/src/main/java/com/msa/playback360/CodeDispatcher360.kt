@@ -24,6 +24,10 @@ object CodeDispatcher360 {
    "/codeutf16le" -> encoded(command,r,"UTF-16LE")
    "/codeutf16be" -> encoded(command,r,"UTF-16BE")
    "/codeutf8","/codeutf32" -> CodeCommandResult360(command,"Encoding not fully implemented","Validated streaming decoding for this encoding is not implemented yet.",warnings=listOf("No inferred text is returned."))
+   "/codeconstants","/codenumeric" -> {
+    val n=NumericEvidenceScanner360.scan(file)
+    result(command,"Numeric constant candidates",NumericEvidenceScanner360.summary(n))
+   }
    "/codebom" -> {
     val bom=CodeEncoding360.detectBom(file)
     result(command,"BOM evidence",if(bom.isEmpty()) "No supported BOM observed in the scan window." else bom.joinToString("\n"){it.encoding+" @ 0x"+it.offset.toString(16).uppercase()})
