@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.ui.PlayerView
 
 class MainActivity:ComponentActivity(){
@@ -17,7 +18,7 @@ class MainActivity:ComponentActivity(){
   var inspector by remember{mutableStateOf(false)}
   if(inspector){MaterialTheme{InspectorScreen{inspector=false}}}
   else{
-   val player=remember{ExoPlayer.Builder(this).setEnableDecoderFallback(true).build()}
+   val player=remember{val rf=DefaultRenderersFactory(this).setEnableDecoderFallback(true);ExoPlayer.Builder(this,rf).build()}
    val trace=remember{Trace360(player)};val snap by trace.snapshot.collectAsState();var url by remember{mutableStateOf("")}
    DisposableEffect(Unit){onDispose{trace.close();player.release()}}
    MaterialTheme{Column(Modifier.fillMaxSize().padding(12.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
