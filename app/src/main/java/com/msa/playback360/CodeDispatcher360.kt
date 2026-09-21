@@ -18,6 +18,17 @@ object CodeDispatcher360 {
    "/codeevidence" -> result(command,"Verified evidence","Evidence sorted by confidence and offset.",CodeDeepDive360.evidence(r))
    "/codeverify" -> result(command,"Evidence verification",CodeDeepDive360.verify(file,r))
    "/codecli" -> result(command,"MQL360 CLI",CodeDeepDive360.cli())
+   "/codeassembly" -> result(command,"Assembly-like evidence view",CodeRead360.assembly(file,r))
+   "/codestart" -> result(command,"Entry/event evidence",CodeRead360.start(file,r))
+   "/codefunction" -> result(command,"Function/method evidence",CodeRead360.functions(file,r))
+   "/coderead","/codex" -> result(command,"Deep code reader",CodeRead360.read(file,r))
+   "/codeask" -> result(command,"Evidence query",CodeRead360.ask(file,r,arg))
+   "/codeprocess" -> result(command,"Analysis process",CodeRead360.process(file,r))
+   "/codelog" -> result(command,"Analysis log",CodeRead360.log(file,r))
+   "/codecopy" -> result(command,"Evidence copy",CodeRead360.copy(r))
+   "/codewrite" -> result(command,"Safe write boundary",CodeRead360.writeBoundary())
+   "/codedecryptor" -> result(command,"Decode/decrypt boundary",CodeRead360.decryptBoundary())
+   "/codesign" -> result(command,"Signature / hash identity","SHA-256: "+r.sha256+"\nFile: "+file.name+"\nSize: "+file.length()+" bytes\nThis is file identity evidence, not a claim of publisher/authenticode signing.")
    "/learnintelligentmodel" -> {
     val learned=IntelligentEvidenceModel360.learn(r)
     result(command,"Intelligent evidence learning",
