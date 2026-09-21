@@ -36,7 +36,12 @@ jobs:
           {
             echo "## Kotlin compiler diagnostics"
             echo '~~~text'
-            grep -E '(^e: | error: |\.kt:[0-9]+:[0-9]+|Compilation error)' kotlin-compile.log | head -120 || true
+            grep -n -E '(^e: |^w: |error: |Error: |\.kt:[0-9]+:[0-9]+|Compilation error|Unresolved reference|Type mismatch|Cannot infer|Expecting|No value passed|Too many arguments)' kotlin-compile.log | head -200 || true
+            echo '~~~'
+            echo
+            echo "## First compiler output"
+            echo '~~~text'
+            sed -n '1,180p' kotlin-compile.log
             echo '~~~'
           } >> "$GITHUB_STEP_SUMMARY"
           exit "$status"
