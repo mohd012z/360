@@ -18,6 +18,10 @@ object CodeDispatcher360 {
    "/codeevidence" -> result(command,"Verified evidence","Evidence sorted by confidence and offset.",CodeDeepDive360.evidence(r))
    "/codeverify" -> result(command,"Evidence verification",CodeDeepDive360.verify(file,r))
    "/codecli" -> result(command,"MQL360 CLI",CodeDeepDive360.cli())
+   "/codemap","/codestack","/coderelationships" -> {
+    val g=CodeRelationGraph360.build(file,r)
+    result(command,"Evidence relationship graph",CodeRelationGraph360.render(g))
+   }
    "/codecatalog","/codelist","/code*" -> result(command,"MQL360 command catalog",CodeDeepDive360.catalog())
    "/codesummary","/codemetadata","/metadata","/codebinary" -> result(command,"Target summary",MqlBinaryScanner360.summary(r))
    "/structure","/codestructure","/coderegions" -> {
