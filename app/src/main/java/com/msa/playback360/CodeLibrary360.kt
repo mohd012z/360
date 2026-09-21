@@ -1,7 +1,7 @@
 package com.msa.playback360
 
 enum class CodeFamily {
- DART, HERMES, JAVASCRIPT, MQL4_SOURCE, MQL5_SOURCE, M3U, M3U8, HLS_TAGS, JIAGGU_MARKER,
+ DART, HERMES, JAVASCRIPT, MQL4_SOURCE, MQL5_SOURCE, EX4_BINARY, EX5_BINARY, M3U, M3U8, HLS_TAGS, JIAGGU_MARKER,
  ARM_NATIVE, CSS, CPP, C, JAVA, KOTLIN, SMALI, DEX, ELF, UNKNOWN
 }
 
@@ -21,6 +21,8 @@ object CodeLibrary360 {
   CodeLibraryEntry(CodeFamily.JAVASCRIPT,setOf("js","mjs","cjs","jsx"),listOf("function ","=>","require(","import "),"javascript",listOf("source","modules","functions","urls","json","callbacks","format")),
   CodeLibraryEntry(CodeFamily.MQL4_SOURCE,setOf("mq4","mqh"),listOf("#property","OnTick","OrderSend"),"mql4",listOf("source","functions","inputs","includes","trading-api","urls")),
   CodeLibraryEntry(CodeFamily.MQL5_SOURCE,setOf("mq5","mqh"),listOf("#property","OnTradeTransaction","MqlTradeRequest"),"mql5",listOf("source","functions","inputs","includes","trading-api","urls")),
+  CodeLibraryEntry(CodeFamily.EX4_BINARY,setOf("ex4"),emptyList(),"mql360",listOf("metadata","hash","entropy","strings","offsets","hex","mql-api","dll","urls","objects","map","compare","sources","summary"),"Compiled MQL4 evidence analysis only; original MQ4 source is not claimed or protection bypassed."),
+  CodeLibraryEntry(CodeFamily.EX5_BINARY,setOf("ex5"),emptyList(),"mql360",listOf("metadata","hash","entropy","strings","offsets","hex","mql-api","dll","urls","objects","map","compare","sources","summary"),"Compiled MQL5 evidence analysis only; original MQ5 source is not claimed or protection bypassed."),
   CodeLibraryEntry(CodeFamily.M3U,setOf("m3u"),listOf("#EXTM3U","#EXTINF"),"playlist",listOf("entries","groups","names","logos","tvg-id","tvg-name","urls","headers","duplicates","copy","extract"),"Playlist inventory; credentials and sensitive query values should be redacted in reports."),
   CodeLibraryEntry(CodeFamily.M3U8,setOf("m3u8"),listOf("#EXTM3U","#EXT-X-"),"hls",listOf("master-playlist","media-playlist","variants","bandwidth","resolution","codecs","audio","subtitles","segments","keys-metadata","target-duration","sequence","live-vod","urls"),"HLS structure inspection; do not expose protected key material."),
   CodeLibraryEntry(CodeFamily.HLS_TAGS,setOf("m3u","m3u8"),listOf("#EXTINF","#EXT-X-STREAM-INF","#EXT-X-MEDIA","#EXT-X-KEY","#EXT-X-MAP","#EXT-X-TARGETDURATION","#EXT-X-MEDIA-SEQUENCE","#EXT-X-ENDLIST"),"hls-tags",listOf("tag-index","attributes","line-number","url-relation","timeline","validation"),"Indexes #EXT and #EXT-X metadata with source-line provenance."),
@@ -47,6 +49,9 @@ object CodeLibrary360 {
   "/js" to CodeFamily.JAVASCRIPT,
   "/mq4" to CodeFamily.MQL4_SOURCE,
   "/mq5" to CodeFamily.MQL5_SOURCE,
+  "/ex4" to CodeFamily.EX4_BINARY,
+  "/ex5" to CodeFamily.EX5_BINARY,
+  "/mql360" to CodeFamily.EX5_BINARY,
   "/m3u" to CodeFamily.M3U,
   "/m3u8" to CodeFamily.M3U8,
   "/#" to CodeFamily.HLS_TAGS,
