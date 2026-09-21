@@ -9,7 +9,8 @@ data class ExStructureReport360(val fileName:String,val kind:MqlBinaryKind,val s
 
 /** Read-only EX4/EX5 structural mapper. It does not decrypt or bypass compiler protection. */
 object ExStructure360 {
- private const val WINDOW=4096
+ private const val WINDOW=256
+ private const val SCAN_LIMIT=65536L
  private const val MAX_REGIONS=8192
  fun inspect(file:File):ExStructureReport360{
   require(file.isFile&&file.canRead()){"Target is not readable"}
@@ -21,18 +22,21 @@ object ExStructure360 {
    r.readFully(head)
    var off=0L
    val buf=ByteArray(WINDOW)
-   while(off<r.length()&&regions.size<MAX_REGIONS){
-    r.seek(off);val n=r.read(buf,0,minOf(WINDOW, minOf(Int.MAX_VALUE.toLong(), r.length()-off).toInt()));if(n<=0)break
+   val scanEnd=minOf(r.length(),SCAN_LIMIT)
+   while(off<scanEnd&&regions.size<MAX_REGIONS){
+    r.seek(off);val n=r.read(buf,0,minOf(WINDOW, minOf(Int.MAX_VALUE.toLong(), scanEnd-off).toInt()));if(n<=0)break
     val counts=IntArray(256);var zero=0;var printable=0
     for(i in 0 until n){val v=buf[i].toInt()and 255;counts[v]++;if(v==0)zero++;if(v in 32..126)printable++}
     val h=entropy(counts,n)
     val zr=zero.toDouble()/n;val pr=printable.toDouble()/n
-    val label=when{off==0L->"HEADER";h>=7.7->"HIGH_ENTROPY";zr>=0.50->"SPARSE_DATA";pr>=0.55->"TEXT_LIKE";h<4.5->"LOW_ENTROPY_DATA";else->"MIXED_BINARY"}
+    val label=when{off==0L->"HEADER";h>=7.5->"HIGH_ENTROPY";zr>=0.50->"SPARSE_DATA";pr>=0.70->"TEXT_LIKE";h<3.0->"LOW_ENTROPY_DATA";else->"MIXED_BINARY"}
     regions+=ExRegion360(off,n,h,zr,pr,label);off+=n
    }
   }
   val high=regions.count{it.label=="HIGH_ENTROPY"}
   val notes=buildList{
+   add("First "+minOf(file.length(),SCAN_LIMIT)+" bytes sampled in 256-byte windows.")
+   add("HIGH_ENTROPY means statistically dense data; it does not by itself prove encryption or compression.")
    add("Region labels are statistical evidence, not recovered source-code boundaries.")
    if(high>regions.size/2)add("Most sampled regions have high entropy; plain string/API recovery may be limited.")
    add("No decryption, protection bypass, or execution is performed.")
@@ -41,6 +45,7 @@ object ExStructure360 {
  }
  fun summary(x:ExStructureReport360):String=buildString{
   append(x.kind).append(" STRUCTURE • ").append(x.fileName).append("\nSize: ").append(x.size).append(" bytes\n")
+  append("Header[0..127]: ").append(x.headerHex.chunked(2).joinToString(" ")).append("\n")
   x.regions.groupingBy{it.label}.eachCount().toList().sortedByDescending{it.second}.forEach{append(it.first).append(": ").append(it.second).append("\n")}
   append("\nRegions:\n")
   x.regions.take(256).forEach{append("0x").append(it.offset.toString(16).uppercase()).append(" +").append(it.size).append("  ").append(it.label).append("  H=").append("%.3f".format(it.entropy)).append("  text=").append("%.1f%%".format(it.printableRatio*100)).append("\n")}
