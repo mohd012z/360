@@ -4,6 +4,12 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -24,7 +30,31 @@ fun Mql360Dashboard(
 ) {
     var tab by remember { mutableStateOf(MqlDashboardTab.OVERVIEW) }
     var output by remember { mutableStateOf("") }
+    var referenceSource by remember { mutableStateOf<Pair<File,MqlBinaryReport360>?>(null) }
+    var referenceCompiled by remember { mutableStateOf<Pair<File,MqlBinaryReport360>?>(if(report.kind==MqlBinaryKind.EX4 || report.kind==MqlBinaryKind.EX5) file to report else null) }
+    var pairBusy by remember { mutableStateOf(false) }
+    var pairError by remember { mutableStateOf<String?>(null) }
+    val context=LocalContext.current
+    val scope=rememberCoroutineScope()
     val scroll = rememberScrollState()
+
+    fun importReference(uri:android.net.Uri, source:Boolean) {
+        scope.launch {
+            pairBusy=true
+            pairError=null
+            runCatching {
+                withContext(Dispatchers.IO) {
+                    val imported=TargetImporter360.import(context,uri)
+                    imported to MqlBinaryScanner360.scan(imported)
+                }
+            }.onSuccess {
+                if(source) referenceSource=it else referenceCompiled=it
+            }.onFailure { pairError=it.message ?: "Reference import failed" }
+            pairBusy=false
+        }
+    }
+    val sourcePicker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){ uri -> uri?.let{importReference(it,true)} }
+    val compiledPicker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){ uri -> uri?.let{importReference(it,false)} }
 
     Scaffold(
         topBar = {
@@ -125,13 +155,14 @@ fun Mql360Dashboard(
                     val target = if (report.kind == MqlBinaryKind.EX4) "mq4" else "mq5"
                     CommandPanel("/codedeepreconstruct " + target, file, report)
                 }
-                MqlDashboardTab.COMPARE -> Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text("REFERENCE PAIR", style = MaterialTheme.typography.titleSmall)
-                        Text("Select a known MQ4/MQ5 + EX4/EX5 pair to measure recovered evidence against ground truth.")
-                        Text("Comparison does not claim unavailable original source.")
-                    }
-                }
+                MqlDashboardTab.COMPARE -> ReferencePairPanel(
+                    source=referenceSource,
+                    compiled=referenceCompiled,
+                    busy=pairBusy,
+                    error=pairError,
+                    onPickSource={sourcePicker.launch(arrayOf("*/*"))},
+                    onPickCompiled={compiledPicker.launch(arrayOf("*/*"))}
+                )
                 MqlDashboardTab.MODEL -> Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text("INTELLIGENT EVIDENCE MODEL", style = MaterialTheme.typography.titleSmall)
