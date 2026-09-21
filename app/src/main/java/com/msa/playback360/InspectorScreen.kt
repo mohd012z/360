@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 import androidx.compose.ui.platform.LocalConfiguration
 
-private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("Code"), FILES("Files"), LIVE("Live") }
+private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("Code"), FILES("Files"), LIVE("Live"), SECURITY("Security360") }
 
 @Composable fun InspectorScreen(onBack:()->Unit){
  val context=LocalContext.current
@@ -38,6 +38,7 @@ private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("C
  var bubbleX by remember{mutableFloatStateOf(0f)}
  var bubbleY by remember{mutableFloatStateOf(0f)}
  var scan by remember{mutableStateOf<TargetScan360?>(null)}
+ var securityReport by remember{mutableStateOf<Security360Report?>(null)}
  val openTarget=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->
   uri?.let{runCatching{TargetScanner360.scan(TargetImporter360.import(context,it))}.onSuccess{s->scan=s;selected=InspectObject("TARGET",s.file.name,s.file.name,s.file.name,"360workspace/imports/"+s.file.name,null,s.file.length(),EvidenceSource.INFERRED,mapOf("Kind" to s.binary.kind.name,"SHA-256" to s.binary.sha256,"Libraries" to s.libraries.joinToString{it.family.name},"Findings" to s.binary.findings.size.toString()))}.onFailure{Toast.makeText(context,it.message?:"Scan failed",Toast.LENGTH_LONG).show()}}
  }
@@ -63,6 +64,7 @@ private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("C
      Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)){
       Button(onClick={
        val sec=Security360.fromWeb(w.url)
+       securityReport=sec
        selected=InspectObject("WEB_TARGET",w.host,w.host,w.url,w.url,null,null,EvidenceSource.INFERRED,
         mapOf("Scheme" to w.kind.name,"Host" to w.host,"Port" to (w.port?.toString()?:"default"),
          "Evidence" to w.evidence,"Security360" to SecurityEvidenceView360.summary(sec)))
@@ -83,6 +85,7 @@ private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("C
     InspectorTab.CODE->CompactCode(selected,engine)
     InspectorTab.FILES->CompactFiles(engine)
     InspectorTab.LIVE->CompactLive(selected)
+    InspectorTab.SECURITY->securityReport?.let{Security360Screen(it){tab=InspectorTab.OVERVIEW}} ?: Text("Open a web target to build Security360 evidence.")
    }
    if(more) MoreSheet(engine,{more=false})
   }
@@ -98,6 +101,7 @@ private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("C
     DropdownMenuItem(text={Text("Code / Read / View")},onClick={tab=InspectorTab.CODE;toolMenu=false})
     DropdownMenuItem(text={Text("Files / Extract")},onClick={tab=InspectorTab.FILES;toolMenu=false})
     DropdownMenuItem(text={Text("Live / Trace")},onClick={tab=InspectorTab.LIVE;toolMenu=false})
+    DropdownMenuItem(text={Text("Security360")},onClick={tab=InspectorTab.SECURITY;toolMenu=false})
     HorizontalDivider()
     DropdownMenuItem(text={Text("All Functions")},onClick={more=true;toolMenu=false})
     DropdownMenuItem(text={Text("Copy Current")},onClick={engine.copy("360",selected.copyDetails());toolMenu=false})
