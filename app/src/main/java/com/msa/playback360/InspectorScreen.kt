@@ -142,6 +142,8 @@ private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("C
   Text("WEB MAP  Routes • RealURLs • ServerName • Host • Dir • Index")
   Text("WEB LIVE  Security • Mirror • JSON • Callback • Release • Buffer")
   Text("CONNECTION  URL • Host • DNS/IP evidence • Ping • Config • INI • HTML")
+  Text("STRUCTURE  VPN context • DNS • Mirror • Clone • LayerStack • FolderStack")
+  Text("WEB INDEX  IndexOf • Chrome hints • EXT • Plugin refs • Ads evidence • Structure")
   Text("WEB CRYPTO  Encrypt • Decrypt (owned workspace data)")
   Text("LAYERS  Hidden • HiddenLayer • HiddenStack • HiddenLog • HiddenCache")
   Text("Also  Kotlin • Java • Smali • DEX • ELF")
