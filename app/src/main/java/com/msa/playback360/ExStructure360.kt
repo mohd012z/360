@@ -16,13 +16,13 @@ object ExStructure360 {
   val kind=Mql360.kindFor(file.name)
   require(kind==MqlBinaryKind.EX4||kind==MqlBinaryKind.EX5){"Target must be EX4 or EX5"}
   val regions=mutableListOf<ExRegion360>()
-  val head=ByteArray(minOf(128,file.length().toInt()))
+  val head=ByteArray(minOf(128L,file.length()).toInt())
   RandomAccessFile(file,"r").use{r->
    r.readFully(head)
    var off=0L
    val buf=ByteArray(WINDOW)
    while(off<r.length()&&regions.size<MAX_REGIONS){
-    r.seek(off);val n=r.read(buf,0,minOf(WINDOW,(r.length()-off).toInt()));if(n<=0)break
+    r.seek(off);val n=r.read(buf,0,minOf(WINDOW, minOf(Int.MAX_VALUE.toLong(), r.length()-off).toInt()));if(n<=0)break
     val counts=IntArray(256);var zero=0;var printable=0
     for(i in 0 until n){val v=buf[i].toInt()and 255;counts[v]++;if(v==0)zero++;if(v in 32..126)printable++}
     val h=entropy(counts,n)
