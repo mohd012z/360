@@ -100,7 +100,14 @@ object MqlCodeLibrary360 {
   BuiltInCodeCommand("/codetxt","Language","Inspect text/config/log evidence.","Read-only text evidence."),
   BuiltInCodeCommand("/codecs","Language","Classify C#/.NET evidence.","Static evidence; no execution."),
   BuiltInCodeCommand("/codeoffset","Binary","Navigate evidence by offset.","Offset navigation only."),
-  BuiltInCodeCommand("/codeunicode","Evidence","Extract/classify Unicode strings.","Retains byte offsets and provenance.")
+  BuiltInCodeCommand("/codeunicode","Evidence","Extract/classify Unicode strings.","Retains byte offsets and provenance."),
+  BuiltInCodeCommand("/codeascii","Evidence","Show ASCII string evidence.","Printable ASCII with exact byte offsets."),
+  BuiltInCodeCommand("/codeutf","Evidence","Show all supported UTF string evidence.","Encoding-aware filter; does not guess unavailable text."),
+  BuiltInCodeCommand("/codeutf8","Evidence","Show UTF-8-compatible evidence.","Separates decoded text from binary bytes."),
+  BuiltInCodeCommand("/codeutf16","Evidence","Show UTF-16 evidence.","Includes endian-specific provenance where detected."),
+  BuiltInCodeCommand("/codeutf16le","Evidence","Show UTF-16LE evidence.","Exact byte offsets retained."),
+  BuiltInCodeCommand("/codeutf16be","Evidence","Show UTF-16BE evidence.","Exact byte offsets retained."),
+  BuiltInCodeCommand("/codeutf32","Evidence","Catalog UTF-32 evidence when supported.","Read-only decoding with provenance.")
  )
 
  private fun containsSymbol(text:String,s:BuiltInCodeSymbol):Boolean =
