@@ -77,6 +77,10 @@ object CodeDispatcher360 {
     val s=ExStructure360.inspect(file)
     result(command,"EX4/EX5 structure map",ExStructure360.summary(s))
    }
+   "/adaptiveregions","/codetransitions" -> {
+    val s=ExStructure360.inspect(file)
+    result(command,"Adaptive structural regions",AdaptiveRegion360.render(AdaptiveRegion360.merge(s)))
+   }
    "/codestring" -> result(command,"String evidence","Normalized string findings.",r.evidence.filter{it.kind==MqlObjectKind.STRING})
    "/codeascii" -> encoded(command,r,"ASCII")
    "/codeutf","/codeunicode" -> encoded(command,r,"UTF")
