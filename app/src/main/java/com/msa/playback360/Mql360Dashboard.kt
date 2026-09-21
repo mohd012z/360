@@ -268,6 +268,17 @@ private fun ReferencePairPanel(
                 Text("Matched "+deep.matched+" • Missing "+deep.missing+" • Extra "+deep.extra+" • Uncertain "+deep.uncertain)
                 LinearProgressIndicator(progress={deep.confidence/100f},modifier=Modifier.fillMaxWidth())
                 Text("Deep verification confidence: "+deep.confidence+"%")
+                var feedback by remember(source,compiled){mutableStateOf("")}
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                    Button(onClick={feedback=IntelligentEvidenceModel360.learnReferencePair(source.second,compiled.second)}){
+                        Text("Learn From Pair")
+                    }
+                    OutlinedButton(onClick={
+                        IntelligentEvidenceModel360.learnReferencePair(source.second,compiled.second)
+                        feedback=IntelligentEvidenceModel360.improve(compiled.second)
+                    }){Text("Learn + Improve")}
+                }
+                if(feedback.isNotBlank()) Text(feedback,style=MaterialTheme.typography.labelSmall)
                 val groups=listOf(
                     ReferenceState360.MATCHED,
                     ReferenceState360.MISSING,
