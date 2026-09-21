@@ -19,6 +19,7 @@ fun Mql360Screen(file:File, onBack:()->Unit) {
  var query by remember{ mutableStateOf("") }
  var selected by remember{ mutableStateOf<MqlEvidence360?>(null) }
  var filter by remember{ mutableStateOf<MqlObjectKind?>(null) }
+ var commandOutput by remember{ mutableStateOf<Pair<String,String>?>(null) }
 
  LaunchedEffect(file){
   runCatching { MqlBinaryScanner360.scan(file) }
@@ -43,7 +44,22 @@ fun Mql360Screen(file:File, onBack:()->Unit) {
     Text("SHA-256 "+r.sha256,maxLines=1,overflow=TextOverflow.Ellipsis,style=MaterialTheme.typography.labelSmall)
     Text("Entropy %.3f • Evidence %d • API %d • DLL %d • URL %d".format(r.entropy,r.evidence.size,r.apis,r.dlls,r.urls),style=MaterialTheme.typography.labelSmall)
    }}
-   OutlinedTextField(query,{query=it},Modifier.fillMaxWidth(),singleLine=true,placeholder={Text("/codegrep or search evidence")})
+   Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)){
+    Button(onClick={
+     val x=MqlReconstructionEngine360.reconstruct(r,if(r.kind==MqlBinaryKind.EX4)MqlBinaryKind.MQ4 else MqlBinaryKind.MQ5)
+     commandOutput=("RECONSTRUCT • "+x.target+" • "+x.confidence+"%") to x.source
+    }){Text("RECONSTRUCT")}
+    OutlinedButton(onClick={filter=MqlObjectKind.DLL}){Text("DLL")}
+    OutlinedButton(onClick={filter=MqlObjectKind.TRADING_API}){Text("TRADE")}
+    OutlinedButton(onClick={filter=MqlObjectKind.INDICATOR}){Text("INDICATOR")}
+   }
+   OutlinedTextField(query,{query=it},Modifier.fillMaxWidth(),singleLine=true,placeholder={Text("Search evidence or type /code...")})
+   if(query.startsWith("/") && query.isNotBlank()){
+    Button(onClick={
+     val x=CodeDispatcher360.execute(query,file,r)
+     commandOutput=x.title to (x.message+(if(x.warnings.isEmpty())"" else "\n\n"+x.warnings.joinToString("\n")))
+    },modifier=Modifier.fillMaxWidth()){Text("RUN "+query.substringBefore(" "))}
+   }
    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(5.dp)){
     FilterChip(filter==null,{filter=null},{Text("ALL")})
     listOf(MqlObjectKind.MQL_EVENT,MqlObjectKind.TRADING_API,MqlObjectKind.INDICATOR,MqlObjectKind.DLL,MqlObjectKind.URL,MqlObjectKind.STRING).forEach{k->
@@ -70,6 +86,11 @@ fun Mql360Screen(file:File, onBack:()->Unit) {
     }
    }
   }
+ }
+ commandOutput?.let{v->
+  AlertDialog(onDismissRequest={commandOutput=null},
+   confirmButton={TextButton(onClick={commandOutput=null}){Text("CLOSE")}},
+   title={Text(v.first)},text={Box(Modifier.fillMaxWidth().heightIn(max=520.dp)){Text(v.second)}})
  }
  selected?.let{e->
   AlertDialog(onDismissRequest={selected=null},confirmButton={TextButton(onClick={selected=null}){Text("CLOSE")}},
