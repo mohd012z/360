@@ -39,13 +39,13 @@ private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("C
  var bubbleY by remember{mutableFloatStateOf(0f)}
  var scan by remember{mutableStateOf<TargetScan360?>(null)}
  var securityReport by remember{mutableStateOf<Security360Report?>(null)}
- val openTarget=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->
-  uri?.let{runCatching{TargetScanner360.scan(TargetImporter360.import(context,it))}.onSuccess{s->scan=s;selected=InspectObject("TARGET",s.file.name,s.file.name,s.file.name,"360workspace/imports/"+s.file.name,null,s.file.length(),EvidenceSource.INFERRED,mapOf("Kind" to s.binary.kind.name,"SHA-256" to s.binary.sha256,"Libraries" to s.libraries.joinToString{it.family.name},"Findings" to s.binary.findings.size.toString()))}.onFailure{Toast.makeText(context,it.message?:"Scan failed",Toast.LENGTH_LONG).show()}}
- }
  var selected by remember{mutableStateOf(InspectObject(
   "CLASS","Select/index an object",null,"classes*.dex","DEX -> package -> class",
   null,null,EvidenceSource.DEX,mapOf("Status" to "Ready for target indexing")
  ))}
+ val openTarget=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->
+  uri?.let{runCatching{TargetScanner360.scan(TargetImporter360.import(context,it))}.onSuccess{s->scan=s;selected=InspectObject("TARGET",s.file.name,s.file.name,s.file.name,"360workspace/imports/"+s.file.name,null,s.file.length(),EvidenceSource.INFERRED,mapOf("Kind" to s.binary.kind.name,"SHA-256" to s.binary.sha256,"Libraries" to s.libraries.joinToString{it.family.name},"Findings" to s.binary.findings.size.toString()))}.onFailure{Toast.makeText(context,it.message?:"Scan failed",Toast.LENGTH_LONG).show()}}
+ }
 
  Scaffold(
   topBar={Surface(tonalElevation=2.dp){Row(Modifier.fillMaxWidth().padding(horizontal=10.dp,vertical=6.dp),horizontalArrangement=Arrangement.SpaceBetween){
