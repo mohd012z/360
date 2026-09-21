@@ -113,6 +113,8 @@ private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("C
   Text("EX4/EX5  strings • mqlapi • dll • trading markers")
   Text("CODE  extract • read • view • method • style • function • stress")
   Text("LIBRARY  Dart • Hermes • JS • MQ4/5 • M3U/M3U8 • HLS #Tags • Jiagu • ARM • CSS • C/C++")
+  Text("DISCOVERY  Server • Link • Routes • Map • Viewer • Name")
+  Text("LAYERS  Hidden • HiddenLayer • HiddenStack • HiddenLog • HiddenCache")
   Text("Also  Kotlin • Java • Smali • DEX • ELF")
   Text("SAFE  legal • authorise • approve • readonly • redact • audit")
   Text("Workspace: "+e.workspacePath(),style=MaterialTheme.typography.labelSmall)
