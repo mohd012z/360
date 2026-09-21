@@ -32,6 +32,10 @@ object CodeDispatcher360 {
      else copy.take(500).joinToString("\n"){it.confidence.toString()+"% ["+it.kind+"] "+it.token+" obs="+it.observations+" confirmed="+it.confirmations})
    }
    "/improvemodel" -> result(command,"Improve evidence model",IntelligentEvidenceModel360.improve(r))
+   "/method","/codemethod","/deepmethod","/hiddenmethod" -> {
+    val methods=MqlMethodCluster360.build(file,r)
+    result(command,"EX4/EX5 method reconstruction",MqlMethodCluster360.render(methods))
+   }
    "/codemap","/codestack","/coderelationships" -> {
     val g=CodeRelationGraph360.build(file,r)
     result(command,"Evidence relationship graph",CodeRelationGraph360.render(g))
