@@ -31,19 +31,22 @@ jobs:
         shell: bash
         run: |
           set +e
-          gradle :app:compileDebugKotlin --no-daemon --stacktrace --warning-mode all --console=plain 2>&1 | tee kotlin-compile.log
+          gradle :app:compileDebugKotlin --no-daemon --warning-mode all --console=plain 2>&1 | tee kotlin-compile.log
           status=${PIPESTATUS[0]}
+
+          echo
+          echo "================ KOTLIN ROOT ERRORS ================"
+          grep -n -E '(^e: |^error: |\.kt:[0-9]+:[0-9]+|Unresolved reference|Type mismatch|Cannot infer|Expecting|No value passed|Too many arguments|Overload resolution ambiguity|Smart cast)' kotlin-compile.log | head -200 || true
+          echo "===================================================="
+          echo
+
           {
             echo "## Kotlin compiler diagnostics"
             echo '~~~text'
-            grep -n -E '(^e: |^w: |error: |Error: |\.kt:[0-9]+:[0-9]+|Compilation error|Unresolved reference|Type mismatch|Cannot infer|Expecting|No value passed|Too many arguments)' kotlin-compile.log | head -200 || true
-            echo '~~~'
-            echo
-            echo "## First compiler output"
-            echo '~~~text'
-            sed -n '1,180p' kotlin-compile.log
+            grep -n -E '(^e: |^error: |\.kt:[0-9]+:[0-9]+|Unresolved reference|Type mismatch|Cannot infer|Expecting|No value passed|Too many arguments|Overload resolution ambiguity|Smart cast)' kotlin-compile.log | head -200 || true
             echo '~~~'
           } >> "$GITHUB_STEP_SUMMARY"
+
           exit "$status"
 
       - name: Upload compiler diagnostics
