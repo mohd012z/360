@@ -112,6 +112,8 @@ private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("C
   Text("FILES  filesdata • compare • offset • realname")
   Text("EX4/EX5  strings • mqlapi • dll • trading markers")
   Text("CODE  extract • read • view • method • style • function • stress")
+  Text("ARCH  Code • Stack • Layer • Store • View • Method • Clone")
+  Text("CRYPTO  Encrypt • Decrypt (workspace / supplied password)")
   Text("LIBRARY  Dart • Hermes • JS • MQ4/5 • M3U/M3U8 • HLS #Tags • Jiagu • ARM • CSS • C/C++")
   Text("DISCOVERY  Server • Link • Routes • Map • Viewer • Name")
   Text("LAYERS  Hidden • HiddenLayer • HiddenStack • HiddenLog • HiddenCache")
