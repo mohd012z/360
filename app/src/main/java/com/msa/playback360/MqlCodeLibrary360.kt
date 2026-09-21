@@ -107,7 +107,11 @@ object MqlCodeLibrary360 {
   BuiltInCodeCommand("/codeutf16","Evidence","Show UTF-16 evidence.","Includes endian-specific provenance where detected."),
   BuiltInCodeCommand("/codeutf16le","Evidence","Show UTF-16LE evidence.","Exact byte offsets retained."),
   BuiltInCodeCommand("/codeutf16be","Evidence","Show UTF-16BE evidence.","Exact byte offsets retained."),
-  BuiltInCodeCommand("/codeutf32","Evidence","Catalog UTF-32 evidence when supported.","Read-only decoding with provenance.")
+  BuiltInCodeCommand("/codeutf32","Evidence","Catalog UTF-32 evidence when supported.","Read-only decoding with provenance."),
+  BuiltInCodeCommand("/codeencode","Encoding","Summarize observed text encodings.","Detection/reporting only; original bytes stay unchanged."),
+  BuiltInCodeCommand("/codevalidate","Validation","Validate decoded evidence against byte structure.","Marks valid, suspicious or unsupported decoding; never invents text."),
+  BuiltInCodeCommand("/codebom","Encoding","Detect Unicode byte-order marks.","Reports BOM type and byte offset when present."),
+  BuiltInCodeCommand("/codecode","Core","Unified code/evidence dispatcher.","Routes to safe read-only viewers, search, encoding and semantic analysis.")
  )
 
  private fun containsSymbol(text:String,s:BuiltInCodeSymbol):Boolean =
