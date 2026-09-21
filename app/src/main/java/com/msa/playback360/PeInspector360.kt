@@ -23,7 +23,7 @@ object PeInspector360 {
    require(r.length()>=64){"File too small"}
    require(r.readUnsignedByte()==0x4d && r.readUnsignedByte()==0x5a){"Missing MZ signature"}
    r.seek(0x3c); val pe=readU32(r)
-   require(pe in 0..(r.length()-24)){"Invalid PE header offset"}
+   require(pe >= 0L && pe <= r.length()-24L){"Invalid PE header offset"}
    r.seek(pe)
    require(readU32(r)==0x00004550L){"Missing PE signature"}
    val machineId=readU16(r); val sectionCount=readU16(r).coerceAtMost(MAX_SECTIONS)
