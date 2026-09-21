@@ -28,6 +28,8 @@ object CodeDispatcher360 {
    "/explodedview","/exploded-view" -> result(command,"Code Brain • Exploded View",CodeBrainVisual360.render(file,r,CodeBrainView360.EXPLODED_VIEW))
    "/seethrough","/transparent" -> result(command,"Code Brain • See Through",CodeDiagnosticVisual360.seeThrough(file,r))
    "/repairguide" -> result(command,"Code Brain • Repair Guide",CodeDiagnosticVisual360.repair(file,r))
+   "/replaceable" -> result(command,"Code Brain • Replaceable",CodeDiagnosticVisual360.replaceable(file,r))
+   "/weakpoints","/weakpoint" -> result(command,"Code Brain • Weak Points",CodeDiagnosticVisual360.weakPoints(file,r))
    "/troubleshootchart" -> result(command,"Code Brain • Troubleshoot Chart",CodeDiagnosticVisual360.troubleshoot(file,r))
    "/timewarp" -> result(command,"Code Brain • Timewarp",CodeDiagnosticVisual360.timeWarp(file,r))
    "/codepy","/phython","/python" -> result(command,"Python evidence",CodeLanguageDecompiler360.language(file,r,"python"))
