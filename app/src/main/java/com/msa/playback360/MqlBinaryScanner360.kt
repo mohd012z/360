@@ -67,7 +67,6 @@ object MqlBinaryScanner360 {
        if(utf16.length<MAX_STRING) utf16.append(low.toChar())
       } else {
        flush(utf16,utf16Start,evidence,"UTF-16LE")
-  flush(utf16be,utf16beStart,evidence,"UTF-16BE")
       }
       pendingUtf16Low=null
      }
@@ -88,6 +87,7 @@ object MqlBinaryScanner360 {
   }
   flush(ascii,asciiStart,evidence,"ASCII")
   flush(utf16,utf16Start,evidence,"UTF-16LE")
+  flush(utf16be,utf16beStart,evidence,"UTF-16BE")
 
   val hash=digest.digest().joinToString(""){"%02x".format(it)}
   return MqlBinaryReport360(file.name,Mql360.kindFor(file.name),file.length(),hash,entropy(counts,total),evidence)
