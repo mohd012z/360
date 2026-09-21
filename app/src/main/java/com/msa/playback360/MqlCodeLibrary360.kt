@@ -1,0 +1,95 @@
+package com.msa.playback360
+
+/**
+ * Built-in semantic library used by MQL360.
+ * It classifies observable evidence; it does not bypass EX4/EX5 protections
+ * or claim recovery of unavailable original source.
+ */
+enum class BuiltInCodeDomain {
+ MQL4, MQL5, EXPERT_ADVISOR, INDICATOR, SCRIPT, CHART, TRADE, DLL_NATIVE,
+ CPP, PYTHON, JAVASCRIPT, VBSCRIPT, NETWORK_REFERENCE, GENERIC
+}
+
+data class BuiltInCodeSymbol(
+ val name:String,
+ val domain:BuiltInCodeDomain,
+ val category:String,
+ val aliases:Set<String> = emptySet(),
+ val description:String
+)
+
+data class BuiltInCodeCommand(
+ val command:String,
+ val domain:String,
+ val action:String,
+ val boundary:String
+)
+
+object MqlCodeLibrary360 {
+ val symbols=listOf(
+  BuiltInCodeSymbol("OnInit",BuiltInCodeDomain.MQL5,"event",setOf("init"),"Initialization event evidence."),
+  BuiltInCodeSymbol("OnDeinit",BuiltInCodeDomain.MQL5,"event",setOf("deinit"),"Deinitialization event evidence."),
+  BuiltInCodeSymbol("OnTick",BuiltInCodeDomain.EXPERT_ADVISOR,"event",emptySet(),"New-tick event commonly used by EAs."),
+  BuiltInCodeSymbol("OnTimer",BuiltInCodeDomain.MQL5,"event",emptySet(),"Timer event evidence."),
+  BuiltInCodeSymbol("OnChartEvent",BuiltInCodeDomain.CHART,"event",emptySet(),"Chart/UI event evidence."),
+  BuiltInCodeSymbol("OnCalculate",BuiltInCodeDomain.INDICATOR,"event",emptySet(),"Custom-indicator calculation event evidence."),
+  BuiltInCodeSymbol("OnTradeTransaction",BuiltInCodeDomain.MQL5,"event",emptySet(),"Trade transaction event evidence."),
+  BuiltInCodeSymbol("OrderSend",BuiltInCodeDomain.TRADE,"trade-api",emptySet(),"Order submission reference."),
+  BuiltInCodeSymbol("OrderModify",BuiltInCodeDomain.TRADE,"trade-api",emptySet(),"Order modification reference."),
+  BuiltInCodeSymbol("OrderClose",BuiltInCodeDomain.TRADE,"trade-api",emptySet(),"Order close reference."),
+  BuiltInCodeSymbol("MqlTradeRequest",BuiltInCodeDomain.MQL5,"trade-structure",emptySet(),"MT5 trade request structure reference."),
+  BuiltInCodeSymbol("MqlTradeResult",BuiltInCodeDomain.MQL5,"trade-structure",emptySet(),"MT5 trade result structure reference."),
+  BuiltInCodeSymbol("CTrade",BuiltInCodeDomain.MQL5,"trade-class",emptySet(),"MT5 standard trade class reference."),
+  BuiltInCodeSymbol("iCustom",BuiltInCodeDomain.INDICATOR,"indicator-api",emptySet(),"Custom indicator reference."),
+  BuiltInCodeSymbol("iMA",BuiltInCodeDomain.INDICATOR,"indicator-api",setOf("MovingAverage"),"Moving-average indicator evidence."),
+  BuiltInCodeSymbol("iRSI",BuiltInCodeDomain.INDICATOR,"indicator-api",setOf("RSI"),"RSI indicator evidence."),
+  BuiltInCodeSymbol("iMACD",BuiltInCodeDomain.INDICATOR,"indicator-api",setOf("MACD"),"MACD indicator evidence."),
+  BuiltInCodeSymbol("iBands",BuiltInCodeDomain.INDICATOR,"indicator-api",setOf("Bollinger"),"Bollinger Bands evidence."),
+  BuiltInCodeSymbol("iStochastic",BuiltInCodeDomain.INDICATOR,"indicator-api",setOf("Stochastic"),"Stochastic indicator evidence."),
+  BuiltInCodeSymbol("iIchimoku",BuiltInCodeDomain.INDICATOR,"indicator-api",setOf("Ichimoku"),"Ichimoku indicator evidence."),
+  BuiltInCodeSymbol("WebRequest",BuiltInCodeDomain.NETWORK_REFERENCE,"network-api",emptySet(),"Observable outbound web-request API reference."),
+  BuiltInCodeSymbol("LoadLibrary",BuiltInCodeDomain.DLL_NATIVE,"native-api",emptySet(),"Native library loading reference."),
+  BuiltInCodeSymbol("ShellExecute",BuiltInCodeDomain.DLL_NATIVE,"native-api",emptySet(),"Shell invocation reference; inventory only."),
+  BuiltInCodeSymbol("CreateObject",BuiltInCodeDomain.VBSCRIPT,"script-api",emptySet(),"VBScript/COM object construction evidence."),
+  BuiltInCodeSymbol("require",BuiltInCodeDomain.JAVASCRIPT,"module-api",emptySet(),"JavaScript module-loading evidence."),
+  BuiltInCodeSymbol("import",BuiltInCodeDomain.PYTHON,"module-api",emptySet(),"Python/import-style source evidence."),
+  BuiltInCodeSymbol("std::",BuiltInCodeDomain.CPP,"native-source",emptySet(),"C++ standard-library source marker.")
+ )
+
+ val commands=listOf(
+  BuiltInCodeCommand("/codeextract","Evidence","Extract strings, metadata and readable evidence with offsets.","Separate workspace; original remains unchanged."),
+  BuiltInCodeCommand("/codeview","Viewer","Open evidence/hex/string view.","Read-only."),
+  BuiltInCodeCommand("/codec++","Language","Classify C/C++/native evidence.","No native protection bypass."),
+  BuiltInCodeCommand("/codevbscript","Language","Classify VBScript/COM evidence.","Evidence only; no script execution."),
+  BuiltInCodeCommand("/codepy","Language","Classify Python evidence.","Evidence only; no imported target execution."),
+  BuiltInCodeCommand("/codemq4","MQL","Classify MQ4/EX4 concepts.","Compiled targets remain evidence-based."),
+  BuiltInCodeCommand("/codemq5","MQL","Classify MQ5/EX5 concepts.","Compiled targets remain evidence-based."),
+  BuiltInCodeCommand("/codeide","Viewer","Open evidence-oriented IDE.","Never presents inferred text as original source."),
+  BuiltInCodeCommand("/codejs","Language","Classify JavaScript evidence.","Static evidence by default."),
+  BuiltInCodeCommand("/codeall","Search","Show all normalized evidence categories.","Includes provenance/status/confidence."),
+  BuiltInCodeCommand("/codedll","Native","Inventory DLL/native references.","Does not load or execute referenced DLLs."),
+  BuiltInCodeCommand("/codestring","Evidence","Extract/classify printable strings.","Retains source offsets."),
+  BuiltInCodeCommand("/codegrep","Search","Search normalized evidence.","Search is local to selected/authorized target evidence."),
+  BuiltInCodeCommand("/codenmap","Network map","Map extracted hosts, URLs and relationships.","Evidence map only; no port scanning or network probing."),
+  BuiltInCodeCommand("/codeconverter","Export","Convert evidence to hex/strings/JSON/report.","Does not claim EX4/EX5-to-original-source conversion."),
+  BuiltInCodeCommand("/codecompress","Workspace","Compress evidence/report package.","Does not rewrite the imported binary."),
+  BuiltInCodeCommand("/codereverse","Analysis","Reconstruct supported semantic evidence.","No compiler/protection bypass; reconstruction is labeled."),
+  BuiltInCodeCommand("/codeai","Analysis","Explain and correlate evidence.","AI conclusions are INFERRED unless directly supported."),
+  BuiltInCodeCommand("/codechart","MQL","Classify chart/object/event evidence.","Evidence-based."),
+  BuiltInCodeCommand("/codeindicator","MQL","Classify indicator APIs and parameters.","Does not invent unavailable strategy logic."),
+  BuiltInCodeCommand("/codescript","MQL","Classify script/event evidence.","Evidence-based."),
+  BuiltInCodeCommand("/codeexpertadvisor","MQL","Classify EA/trading/event evidence.","Does not claim exact original EA source.")
+ )
+
+ private fun containsSymbol(text:String,s:BuiltInCodeSymbol):Boolean =
+  text.contains(s.name,true) || s.aliases.any{text.contains(it,true)}
+
+ fun lookup(text:String):List<BuiltInCodeSymbol> = symbols.filter { containsSymbol(text,it) }
+
+ fun domains(text:String):Set<BuiltInCodeDomain> = lookup(text).map{it.domain}.toSet()
+
+ fun command(name:String):BuiltInCodeCommand? =
+  commands.firstOrNull { it.command.equals(name,true) }
+
+ fun summary():Map<String,Int> = commands.groupingBy{it.domain}.eachCount()
+}
