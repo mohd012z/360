@@ -18,6 +18,7 @@ object CodeDispatcher360 {
    "/codeevidence" -> result(command,"Verified evidence","Evidence sorted by confidence and offset.",CodeDeepDive360.evidence(r))
    "/codeverify" -> result(command,"Evidence verification",CodeDeepDive360.verify(file,r))
    "/codecli" -> result(command,"MQL360 CLI",CodeDeepDive360.cli())
+   "/codedeep","/deep-dive","/deepdive" -> result(command,"MQL360 CodeDeep",CodeDeepOrchestrator360.run(file,r),r.evidence)
    "/symmetryshot" -> result(command,"Code Brain • Symmetry Shot",CodeBrainVisual360.render(file,r,CodeBrainView360.SYMMETRY_SHOT))
    "/collectorbox" -> result(command,"Code Brain • Collector Box",CodeBrainVisual360.render(file,r,CodeBrainView360.COLLECTOR_BOX))
    "/subwayad" -> result(command,"Code Brain • Subway Map",CodeBrainVisual360.render(file,r,CodeBrainView360.SUBWAY_AD))
