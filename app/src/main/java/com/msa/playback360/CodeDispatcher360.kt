@@ -32,6 +32,20 @@ object CodeDispatcher360 {
     if(off==null) usage(command,"Usage: /codeoffset 0x18A20") else result(command,"Offset 0x"+off.toString(16).uppercase(),"Nearby evidence +/-64 bytes.",MqlBinaryScanner360.atOffset(r,off))
    }
    "/codedll" -> byKind(command,r,MqlObjectKind.DLL,"DLL/native references")
+   "/codereconstruct","/codereverse" -> {
+    val target=when(arg.lowercase()){ "mq4"->MqlBinaryKind.MQ4; "mq5"->MqlBinaryKind.MQ5; else->if(r.kind==MqlBinaryKind.EX4)MqlBinaryKind.MQ4 else MqlBinaryKind.MQ5 }
+    val rec=MqlReconstructionEngine360.reconstruct(r,target)
+    CodeCommandResult360(command,"Reconstructed "+target+" source",rec.source,warnings=rec.warnings+("Confidence: "+rec.confidence+"%"))
+   }
+   "/codecompare","/codediff" -> if(arg.isBlank()) usage(command,"Usage: "+command+" <path-to-second EX4/EX5>") else {
+    val other=File(arg)
+    if(!other.isFile || !other.canRead()) usage(command,"Second file is not readable: "+arg)
+    else {
+     val rr=MqlBinaryScanner360.scan(other)
+     val diff=MqlCompare360.compare(r,rr)
+     CodeCommandResult360(command,"MQL360 comparison",MqlCompare360.render(diff))
+    }
+   }
    "/codeindicator" -> byKind(command,r,MqlObjectKind.INDICATOR,"Indicator evidence")
    "/codeapi","/codetrade" -> result(command,"MQL/trade API evidence","Observed API/event evidence.",r.evidence.filter{it.kind==MqlObjectKind.TRADING_API || it.kind==MqlObjectKind.MQL_EVENT})
    "/codeurl","/codenmap" -> byKind(command,r,MqlObjectKind.URL,"URL/network-reference evidence")
