@@ -11,11 +11,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalConfiguration
 
-private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("Code"), FILES("Files"), LIVE("Live") }
+private enum class InspectorTab(val title:String,val compact:String){ OVERVIEW("Overview","Home"), CODE("Code","Code"), FILES("Files","Files"), LIVE("Live","Live"), TOOLS("Tools","Tools") }
 
 @Composable fun InspectorScreen(onBack:()->Unit){
  val context=LocalContext.current
+ val config=LocalConfiguration.current
+ val width=config.screenWidthDp
+ val height=config.screenHeightDp
+ val compact=width<600
+ val landscape=width>height
+ val sidePad=when{width>=1200->24.dp;width>=840->18.dp;else->10.dp}
  val engine=remember{CopyExtractEngine(context)}
  var query by remember{mutableStateOf("")}
  var tab by remember{mutableStateOf(InspectorTab.OVERVIEW)}
@@ -30,11 +37,11 @@ private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("C
    Column(Modifier.weight(1f)){Text("360",style=MaterialTheme.typography.titleLarge);Text(selected.name,maxLines=1,overflow=TextOverflow.Ellipsis,style=MaterialTheme.typography.labelSmall)}
    Row{TextButton(onClick={more=!more}){Text("MORE")};TextButton(onClick=onBack){Text("PLAYER")}}
   }}},
-  bottomBar={NavigationBar{
-   InspectorTab.entries.forEach{item->NavigationBarItem(selected=tab==item,onClick={tab=item},icon={},label={Text(item.title)})}
+  bottomBar={NavigationBar(windowInsets=NavigationBarDefaults.windowInsets){
+   InspectorTab.entries.forEach{item->NavigationBarItem(selected=tab==item,onClick={tab=item},icon={},label={Text(if(compact)item.compact else item.title,maxLines=1)})}
   }}
  ){pad->
-  Column(Modifier.padding(pad).fillMaxSize().padding(horizontal=10.dp,vertical=6.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
+  Column(Modifier.padding(pad).fillMaxSize().padding(horizontal=sidePad,vertical=if(landscape)4.dp else 6.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
    OutlinedTextField(query,{query=it},Modifier.fillMaxWidth(),placeholder={Text("Search or target…")},singleLine=true)
    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)){
     Button(onClick={selected=selected.copy(name=query.ifBlank{"Selected object"},realName=query.ifBlank{null})}){Text("TARGET")}
@@ -47,8 +54,9 @@ private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("C
     InspectorTab.CODE->CompactCode(selected,engine)
     InspectorTab.FILES->CompactFiles(engine)
     InspectorTab.LIVE->CompactLive(selected)
+    InspectorTab.TOOLS->MoreSheet(engine,{tab=InspectorTab.OVERVIEW})
    }
-   if(more) MoreSheet(engine,{more=false})
+   if(more && tab!=InspectorTab.TOOLS) MoreSheet(engine,{more=false})
   }
  }
 }
