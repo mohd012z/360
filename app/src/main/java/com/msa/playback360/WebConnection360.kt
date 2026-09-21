@@ -4,7 +4,7 @@ import java.net.URI
 
 enum class WebConnectionKind360 { HTTP, HTTPS, WS, WSS, MEDIA, CALLBACK, UNKNOWN }
 
-data class WebConnection360(
+data class WebConnectionEvidence360(
  val url:String,
  val host:String,
  val port:Int?,
@@ -27,7 +27,7 @@ data class WebSecurityView360(
 object WebConnection360 {
  private val urlRegex=Regex("""(?:https?|wss?)://[^\s"'<>]+""",RegexOption.IGNORE_CASE)
 
- fun fromInput(raw:String):WebConnection360?{
+ fun fromInput(raw:String):WebConnectionEvidence360?{
   val safe=ServerRouteLibrary360.sanitizeUrl(raw.trim())
   val u=runCatching{URI(safe)}.getOrNull()?:return null
   if(u.scheme !in listOf("http","https","ws","wss"))return null
@@ -36,7 +36,7 @@ object WebConnection360 {
    "ws"->WebConnectionKind360.WS;"wss"->WebConnectionKind360.WSS
    else->WebConnectionKind360.UNKNOWN
   }
-  return WebConnection360(safe,u.host.orEmpty(),u.port.takeIf{it>=0},kind,"URL_INPUT",evidence="User-supplied URL")
+  return WebConnectionEvidence360(safe,u.host.orEmpty(),u.port.takeIf{it>=0},kind,"URL_INPUT",evidence="User-supplied URL")
  }
 
  fun security(raw:String):WebSecurityView360?{
