@@ -7,7 +7,7 @@ package com.msa.playback360
  */
 enum class BuiltInCodeDomain {
  MQL4, MQL5, EXPERT_ADVISOR, INDICATOR, SCRIPT, CHART, TRADE, DLL_NATIVE,
- CPP, PYTHON, JAVASCRIPT, VBSCRIPT, NETWORK_REFERENCE, GENERIC
+ CPP, PYTHON, JAVASCRIPT, VBSCRIPT, JAVA, CSHARP, TEXT, INCLUDE, PANEL, RISK, SIGNAL, NETWORK_REFERENCE, GENERIC
 }
 
 data class BuiltInCodeSymbol(
@@ -53,7 +53,13 @@ object MqlCodeLibrary360 {
   BuiltInCodeSymbol("CreateObject",BuiltInCodeDomain.VBSCRIPT,"script-api",emptySet(),"VBScript/COM object construction evidence."),
   BuiltInCodeSymbol("require",BuiltInCodeDomain.JAVASCRIPT,"module-api",emptySet(),"JavaScript module-loading evidence."),
   BuiltInCodeSymbol("import",BuiltInCodeDomain.PYTHON,"module-api",emptySet(),"Python/import-style source evidence."),
-  BuiltInCodeSymbol("std::",BuiltInCodeDomain.CPP,"native-source",emptySet(),"C++ standard-library source marker.")
+  BuiltInCodeSymbol("std::",BuiltInCodeDomain.CPP,"native-source",emptySet(),"C++ standard-library source marker."),
+  BuiltInCodeSymbol("#include",BuiltInCodeDomain.INCLUDE,"include",setOf(".mqh"),"Source/include dependency evidence."),
+  BuiltInCodeSymbol("ObjectCreate",BuiltInCodeDomain.PANEL,"panel-chart",setOf("OBJ_BUTTON","OBJ_LABEL","OBJ_EDIT"),"Chart panel/object evidence."),
+  BuiltInCodeSymbol("RiskPercent",BuiltInCodeDomain.RISK,"risk",setOf("MaxRisk","Lots","LotSize","StopLoss"),"Risk/position-sizing terminology evidence."),
+  BuiltInCodeSymbol("Signal",BuiltInCodeDomain.SIGNAL,"signal",setOf("BuySignal","SellSignal","EntrySignal"),"Trading signal terminology evidence."),
+  BuiltInCodeSymbol("java.",BuiltInCodeDomain.JAVA,"java",setOf("public class","import java"),"Java source/reference evidence."),
+  BuiltInCodeSymbol("System.",BuiltInCodeDomain.CSHARP,"csharp",setOf("using System","namespace"),"C#/.NET source/reference evidence.")
  )
 
  val commands=listOf(
@@ -78,7 +84,23 @@ object MqlCodeLibrary360 {
   BuiltInCodeCommand("/codechart","MQL","Classify chart/object/event evidence.","Evidence-based."),
   BuiltInCodeCommand("/codeindicator","MQL","Classify indicator APIs and parameters.","Does not invent unavailable strategy logic."),
   BuiltInCodeCommand("/codescript","MQL","Classify script/event evidence.","Evidence-based."),
-  BuiltInCodeCommand("/codeexpertadvisor","MQL","Classify EA/trading/event evidence.","Does not claim exact original EA source.")
+  BuiltInCodeCommand("/codeexpertadvisor","MQL","Classify EA/trading/event evidence.","Does not claim exact original EA source."),
+  BuiltInCodeCommand("/codeexpert","MQL","Alias for Expert Advisor evidence.","Evidence-based; no source recovery claim."),
+  BuiltInCodeCommand("/codepanel","MQL","Classify chart panels, labels, buttons and objects.","Static/source evidence only."),
+  BuiltInCodeCommand("/coderisk","MQL","Classify risk and position-sizing evidence.","Does not recommend trades or infer missing parameters."),
+  BuiltInCodeCommand("/codesignal","MQL","Classify observable signal logic terminology.","Does not generate trading signals from missing logic."),
+  BuiltInCodeCommand("/codeinclude","MQL","Map include/MQH dependencies when source evidence exists.","Does not invent missing includes."),
+  BuiltInCodeCommand("/codetrade","MQL","Collect trading-operation evidence.","Observed APIs and terminology only."),
+  BuiltInCodeCommand("/codelist","Catalog","List evidence objects, symbols and commands.","Read-only catalog."),
+  BuiltInCodeCommand("/code360","Core","Open unified MQL360 evidence workspace.","Read-only analysis workspace."),
+  BuiltInCodeCommand("/codecatalog","Catalog","Browse built-in symbol/command catalog.","Reference library only."),
+  BuiltInCodeCommand("/coderelated","Map","Show evidence related to the selected object.","Relationships include provenance and status."),
+  BuiltInCodeCommand("/codejava","Language","Classify Java evidence.","Static evidence; no execution."),
+  BuiltInCodeCommand("/codevb","Language","Classify VB/VBScript evidence.","Static evidence; no execution."),
+  BuiltInCodeCommand("/codetxt","Language","Inspect text/config/log evidence.","Read-only text evidence."),
+  BuiltInCodeCommand("/codecs","Language","Classify C#/.NET evidence.","Static evidence; no execution."),
+  BuiltInCodeCommand("/codeoffset","Binary","Navigate evidence by offset.","Offset navigation only."),
+  BuiltInCodeCommand("/codeunicode","Evidence","Extract/classify Unicode strings.","Retains byte offsets and provenance.")
  )
 
  private fun containsSymbol(text:String,s:BuiltInCodeSymbol):Boolean =
