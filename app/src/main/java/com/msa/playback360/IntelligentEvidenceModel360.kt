@@ -33,6 +33,25 @@ object IntelligentEvidenceModel360 {
         return snapshot()
     }
 
+    fun learnReferencePair(source:MqlBinaryReport360, compiled:MqlBinaryReport360):String {
+        val deep=MqlDeepReference360.compare(source,compiled)
+        deep.items.forEach { item ->
+            val kind=kindForCategory(item.category) ?: return@forEach
+            when(item.state) {
+                ReferenceState360.MATCHED -> {
+                    observe(item.value,kind,confirmed=true)
+                    observe(item.value,kind,confirmed=true)
+                }
+                ReferenceState360.UNCERTAIN -> observe(item.value,kind,confirmed=false)
+                ReferenceState360.MISSING -> contradict(item.value,kind)
+                ReferenceState360.EXTRA -> Unit
+            }
+        }
+        return "Reference feedback learned: matched="+deep.matched+
+            ", missing="+deep.missing+", uncertain="+deep.uncertain+
+            ", model patterns="+patterns.size
+    }
+
     fun confirm(value: String, kind: MqlObjectKind) {
         observe(value, kind, confirmed = true)
     }
@@ -109,6 +128,17 @@ object IntelligentEvidenceModel360 {
 
     private fun normalize(value: String): String =
         value.trim().replace(Regex("\\s+"), " ").take(160)
+
+    private fun kindForCategory(category:String):MqlObjectKind? = when(category) {
+        "EVENT" -> MqlObjectKind.MQL_EVENT
+        "TRADING_API" -> MqlObjectKind.TRADING_API
+        "INDICATOR" -> MqlObjectKind.INDICATOR
+        "DLL" -> MqlObjectKind.DLL
+        "URL" -> MqlObjectKind.URL
+        "CONSTANT" -> MqlObjectKind.CONSTANT
+        "FUNCTION" -> MqlObjectKind.INFERRED_FUNCTION
+        else -> null
+    }
 
     private fun key(value: String, kind: MqlObjectKind): String =
         kind.name + "|" + normalize(value).lowercase()
