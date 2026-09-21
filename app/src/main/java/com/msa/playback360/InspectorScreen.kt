@@ -56,7 +56,20 @@ private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("C
   Column(Modifier.padding(pad).fillMaxSize().padding(horizontal=sidePad,vertical=if(landscape)4.dp else 6.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
    if(scan==null) Button(onClick={openTarget.launch(arrayOf("*/*"))},Modifier.fillMaxWidth()){Text("OPEN TARGET")}
    else Text("Target: "+scan!!.file.name+" • "+scan!!.binary.kind+" • "+scan!!.objects.size+" indexed",style=MaterialTheme.typography.labelMedium)
-   OutlinedTextField(query,{query=it},Modifier.fillMaxWidth(),placeholder={Text("Search or target…")},singleLine=true)
+   OutlinedTextField(query,{query=it},Modifier.fillMaxWidth(),placeholder={Text("Search, file, or https:// target…")},singleLine=true)
+   if(query.startsWith("http://")||query.startsWith("https://")||query.startsWith("ws://")||query.startsWith("wss://")){
+    val web=remember(query){WebConnection360.fromInput(query)}
+    web?.let{w->
+     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp)){
+      Button(onClick={
+       selected=InspectObject("WEB_TARGET",w.host,w.host,w.url,w.url,null,null,EvidenceSource.INFERRED,
+        mapOf("Scheme" to w.kind.name,"Host" to w.host,"Port" to (w.port?.toString()?:"default"),"Evidence" to w.evidence))
+       tab=InspectorTab.OVERVIEW
+      }){Text("WEB TARGET")}
+      OutlinedButton(onClick={engine.copy("Web URL",w.url)}){Text("COPY URL")}
+     }
+    }
+   }
    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)){
     Button(onClick={selected=selected.copy(name=query.ifBlank{"Selected object"},realName=query.ifBlank{null})}){Text("TARGET")}
     OutlinedButton(onClick={engine.copy("360",selected.copyDetails());Toast.makeText(context,"Copied",Toast.LENGTH_SHORT).show()}){Text("COPY")}
@@ -127,6 +140,8 @@ private enum class InspectorTab(val title:String){ OVERVIEW("Overview"), CODE("C
   Text("DISCOVERY  Server • Link • Routes • Map • Viewer • Name")
   Text("WEB  Target • Method • Layer • Player • Stack • Clone")
   Text("WEB MAP  Routes • RealURLs • ServerName • Host • Dir • Index")
+  Text("WEB LIVE  Security • Mirror • JSON • Callback • Release • Buffer")
+  Text("CONNECTION  URL • Host • DNS/IP evidence • Ping • Config • INI • HTML")
   Text("WEB CRYPTO  Encrypt • Decrypt (owned workspace data)")
   Text("LAYERS  Hidden • HiddenLayer • HiddenStack • HiddenLog • HiddenCache")
   Text("Also  Kotlin • Java • Smali • DEX • ELF")
