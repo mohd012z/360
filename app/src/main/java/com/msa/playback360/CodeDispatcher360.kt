@@ -18,6 +18,20 @@ object CodeDispatcher360 {
    "/codeevidence" -> result(command,"Verified evidence","Evidence sorted by confidence and offset.",CodeDeepDive360.evidence(r))
    "/codeverify" -> result(command,"Evidence verification",CodeDeepDive360.verify(file,r))
    "/codecli" -> result(command,"MQL360 CLI",CodeDeepDive360.cli())
+   "/learnintelligentmodel" -> {
+    val learned=IntelligentEvidenceModel360.learn(r)
+    result(command,"Intelligent evidence learning",
+     "Learned session patterns: "+learned.size+"\n"+
+     "High confidence: "+learned.count{it.confidence>=80}+"\n"+
+     "Learning uses observed evidence and USER_LABEL confirmations only.")
+   }
+   "/modelcopy" -> {
+    val copy=IntelligentEvidenceModel360.modelCopy()
+    result(command,"Model evidence copy",
+     if(copy.isEmpty()) "No learned patterns yet. Run /learnintelligentmodel first."
+     else copy.take(500).joinToString("\n"){it.confidence.toString()+"% ["+it.kind+"] "+it.token+" obs="+it.observations+" confirmed="+it.confirmations})
+   }
+   "/improvemodel" -> result(command,"Improve evidence model",IntelligentEvidenceModel360.improve(r))
    "/codemap","/codestack","/coderelationships" -> {
     val g=CodeRelationGraph360.build(file,r)
     result(command,"Evidence relationship graph",CodeRelationGraph360.render(g))
