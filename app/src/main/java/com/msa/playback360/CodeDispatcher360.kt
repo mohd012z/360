@@ -12,6 +12,13 @@ object CodeDispatcher360 {
   val r=report ?: MqlBinaryScanner360.scan(file)
   return when(command){
    "/code","/codeall","/code360","/codecode" -> result(command,"All evidence",MqlBinaryScanner360.summary(r),r.evidence)
+   "/codebase" -> result(command,"Evidence database",CodeDeepDive360.renderModel(CodeDeepDive360.model(file,r)),r.evidence)
+   "/codeextract","/codeextractor","/codeextraction" -> result(command,"Layered extractor",CodeDeepDive360.extract(file,r),r.evidence)
+   "/codemodel" -> result(command,"Reconstruction model",CodeDeepDive360.renderModel(CodeDeepDive360.model(file,r)))
+   "/codeevidence" -> result(command,"Verified evidence","Evidence sorted by confidence and offset.",CodeDeepDive360.evidence(r))
+   "/codeverify" -> result(command,"Evidence verification",CodeDeepDive360.verify(file,r))
+   "/codecli" -> result(command,"MQL360 CLI",CodeDeepDive360.cli())
+   "/codecatalog","/codelist","/code*" -> result(command,"MQL360 command catalog",CodeDeepDive360.catalog())
    "/codesummary","/codemetadata","/metadata","/codebinary" -> result(command,"Target summary",MqlBinaryScanner360.summary(r))
    "/structure","/codestructure","/coderegions" -> {
     val s=ExStructure360.inspect(file)
