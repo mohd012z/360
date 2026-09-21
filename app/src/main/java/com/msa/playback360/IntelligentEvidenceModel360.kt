@@ -26,7 +26,6 @@ data class ModelAssessment360(
 object IntelligentEvidenceModel360 {
     private val patterns = linkedMapOf<String, LearnedPattern360>()
 
-    @Synchronized
     fun learn(report: MqlBinaryReport360): List<LearnedPattern360> {
         report.evidence
             .filter { it.value.isNotBlank() && it.kind != MqlObjectKind.UNKNOWN }
@@ -34,12 +33,10 @@ object IntelligentEvidenceModel360 {
         return snapshot()
     }
 
-    @Synchronized
     fun confirm(value: String, kind: MqlObjectKind) {
         observe(value, kind, confirmed = true)
     }
 
-    @Synchronized
     fun contradict(value: String, kind: MqlObjectKind) {
         val key = key(value, kind)
         val old = patterns[key] ?: LearnedPattern360(normalize(value), kind, 0, 0, 0, 50)
@@ -49,7 +46,6 @@ object IntelligentEvidenceModel360 {
         )
     }
 
-    @Synchronized
     fun assess(evidence: MqlEvidence360): ModelAssessment360 {
         val normalized = normalize(evidence.value)
         val candidates = patterns.values.filter {
@@ -70,15 +66,12 @@ object IntelligentEvidenceModel360 {
         }
     }
 
-    @Synchronized
     fun snapshot(): List<LearnedPattern360> =
         patterns.values.sortedWith(compareByDescending<LearnedPattern360> { it.confidence }.thenByDescending { it.observations })
 
-    @Synchronized
     fun modelCopy(): List<LearnedPattern360> =
         snapshot().map { it.copy() }
 
-    @Synchronized
     fun improve(report: MqlBinaryReport360): String {
         learn(report)
         val assessed = report.evidence.map { assess(it) }
