@@ -18,6 +18,11 @@ object CodeDispatcher360 {
    "/codeevidence" -> result(command,"Verified evidence","Evidence sorted by confidence and offset.",CodeDeepDive360.evidence(r))
    "/codeverify" -> result(command,"Evidence verification",CodeDeepDive360.verify(file,r))
    "/codecli" -> result(command,"MQL360 CLI",CodeDeepDive360.cli())
+   "/codepy","/phython","/python" -> result(command,"Python evidence",CodeLanguageDecompiler360.language(file,r,"python"))
+   "/codebash","/bash" -> result(command,"Bash / shell evidence",CodeLanguageDecompiler360.language(file,r,"bash"))
+   "/codec++" -> result(command,"C/C++ evidence",CodeLanguageDecompiler360.language(file,r,"cpp"))
+   "/codedecompiler","/decompiler" -> result(command,"Evidence decompiler",CodeLanguageDecompiler360.decompile(file,r),warnings=listOf("Reconstruction is evidence-based and is not represented as original source."))
+   "/codehidden" -> result(command,"Hidden / non-obvious evidence",CodeLanguageDecompiler360.hidden(file,r))
    "/codeassembly" -> result(command,"Assembly-like evidence view",CodeRead360.assembly(file,r))
    "/codestart" -> result(command,"Entry/event evidence",CodeRead360.start(file,r))
    "/codefunction" -> result(command,"Function/method evidence",CodeRead360.functions(file,r))
@@ -80,7 +85,7 @@ object CodeDispatcher360 {
     if(off==null) usage(command,"Usage: /codeoffset 0x18A20") else result(command,"Offset 0x"+off.toString(16).uppercase(),"Nearby evidence +/-64 bytes.",MqlBinaryScanner360.atOffset(r,off))
    }
    "/codedll" -> byKind(command,r,MqlObjectKind.DLL,"DLL/native references")
-   "/codec++","/codec","/codec+","/codegz","/codegzip" -> {
+   "/codec","/codec+","/codegz","/codegzip" -> {
     result(command,"Native / compression extractor",NativeCompressionExtractor360.render(file))
    }
    "/coderegionreconstruct","/codedeepreconstruct" -> {
