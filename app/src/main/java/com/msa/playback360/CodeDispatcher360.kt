@@ -51,6 +51,11 @@ object CodeDispatcher360 {
     if(off==null) usage(command,"Usage: /codeoffset 0x18A20") else result(command,"Offset 0x"+off.toString(16).uppercase(),"Nearby evidence +/-64 bytes.",MqlBinaryScanner360.atOffset(r,off))
    }
    "/codedll" -> byKind(command,r,MqlObjectKind.DLL,"DLL/native references")
+   "/coderegionreconstruct","/codedeepreconstruct" -> {
+    val target=when(arg.lowercase()){ "mq4"->MqlBinaryKind.MQ4; "mq5"->MqlBinaryKind.MQ5; else->if(r.kind==MqlBinaryKind.EX4)MqlBinaryKind.MQ4 else MqlBinaryKind.MQ5 }
+    val src=MqlRegionReconstruction360.render(file,r,target)
+    CodeCommandResult360(command,"Region-aware reconstructed "+target,src,warnings=listOf("Relationship proximity is evidence, not proof of original control flow."))
+   }
    "/codereconstruct","/codereverse" -> {
     val target=when(arg.lowercase()){ "mq4"->MqlBinaryKind.MQ4; "mq5"->MqlBinaryKind.MQ5; else->if(r.kind==MqlBinaryKind.EX4)MqlBinaryKind.MQ4 else MqlBinaryKind.MQ5 }
     val rec=MqlReconstructionEngine360.reconstruct(r,target)
