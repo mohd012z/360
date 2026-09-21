@@ -13,7 +13,10 @@ data class MqlBinaryReport360(
  val urls:Int get()=evidence.count{it.kind==MqlObjectKind.URL}
  val dlls:Int get()=evidence.count{it.kind==MqlObjectKind.DLL}
  val apis:Int get()=evidence.count{it.kind==MqlObjectKind.TRADING_API || it.kind==MqlObjectKind.MQL_EVENT || it.kind==MqlObjectKind.INDICATOR}
- val unicodeStrings:Int get()=evidence.count{it.details["encoding"]=="UTF-16LE"}
+ val asciiStrings:Int get()=evidence.count{it.details["encoding"]=="ASCII"}
+ val utf16LeStrings:Int get()=evidence.count{it.details["encoding"]=="UTF-16LE"}
+ val utf16BeStrings:Int get()=evidence.count{it.details["encoding"]=="UTF-16BE"}
+ val unicodeStrings:Int get()=utf16LeStrings+utf16BeStrings
 }
 
 object MqlBinaryScanner360 {
@@ -30,11 +33,14 @@ object MqlBinaryScanner360 {
   val evidence=ArrayList<MqlEvidence360>()
   val ascii=StringBuilder()
   val utf16=StringBuilder()
+  val utf16be=StringBuilder()
   var asciiStart=0L
   var utf16Start=0L
+  var utf16beStart=0L
   var absolute=0L
   var pendingUtf16Low:Int?=null
   var pendingUtf16Offset=0L
+  var pendingBeZeroOffset:Long?=null
 
   FileInputStream(file).use { input ->
    val buffer=ByteArray(BUFFER)
@@ -61,8 +67,20 @@ object MqlBinaryScanner360 {
        if(utf16.length<MAX_STRING) utf16.append(low.toChar())
       } else {
        flush(utf16,utf16Start,evidence,"UTF-16LE")
+  flush(utf16be,utf16beStart,evidence,"UTF-16BE")
       }
       pendingUtf16Low=null
+     }
+     val beZero=pendingBeZeroOffset
+     if(beZero==null){
+      if(u==0) pendingBeZeroOffset=absolute
+      else flush(utf16be,utf16beStart,evidence,"UTF-16BE")
+     } else {
+      if(u in 32..126){
+       if(utf16be.isEmpty()) utf16beStart=beZero
+       if(utf16be.length<MAX_STRING) utf16be.append(u.toChar())
+      } else flush(utf16be,utf16beStart,evidence,"UTF-16BE")
+      pendingBeZeroOffset=null
      }
      absolute++
     }
@@ -79,7 +97,7 @@ object MqlBinaryScanner360 {
   if(text.length>=MIN_STRING && out.size<MAX_EVIDENCE){
    val value=text.toString()
    val matches=MqlCodeLibrary360.lookup(value)
-   val base=Mql360.classifyString(value,start,if(encoding=="ASCII") "binary-string" else "binary-unicode")
+   val base=Mql360.classifyString(value,start,if(encoding=="ASCII") "binary-string" else "binary-unicode-"+encoding.lowercase())
    val details=mutableMapOf("encoding" to encoding,"byteOffset" to start.toString())
    if(matches.isNotEmpty()){
     details["symbols"]=matches.joinToString(","){it.name}
@@ -99,6 +117,18 @@ object MqlBinaryScanner360 {
    h -= p*(ln(p)/ln(2.0))
   }
   return h
+ }
+
+ fun byEncoding(report:MqlBinaryReport360,encoding:String):List<MqlEvidence360> {
+  val wanted=encoding.uppercase().replace("_","-")
+  return report.evidence.filter { e ->
+   val enc=e.details["encoding"]?.uppercase() ?: return@filter false
+   when(wanted){
+    "UTF","UTF*" -> enc.startsWith("UTF-")
+    "UTF16","UTF-16" -> enc=="UTF-16LE" || enc=="UTF-16BE"
+    else -> enc==wanted
+   }
+  }
  }
 
  fun grep(report:MqlBinaryReport360,query:String):List<MqlEvidence360> =
@@ -122,6 +152,9 @@ object MqlBinaryScanner360 {
    "\nSHA-256: "+report.sha256+
    "\nEntropy: "+"%.3f".format(report.entropy)+
    "\nEvidence: "+report.evidence.size+
+   "\nASCII: "+report.asciiStrings+
+   "\nUTF-16LE: "+report.utf16LeStrings+
+   "\nUTF-16BE: "+report.utf16BeStrings+
    "\nUnicode: "+report.unicodeStrings+
    "\nMQL/API/Indicator: "+report.apis+
    "\nDLL: "+report.dlls+
