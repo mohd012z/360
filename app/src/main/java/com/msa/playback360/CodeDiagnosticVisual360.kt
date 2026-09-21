@@ -46,6 +46,42 @@ object CodeDiagnosticVisual360 {
   })
  }
 
+
+ fun replaceable(file:File,r:MqlBinaryReport360):String=buildString{
+  val methods=MqlMethodCluster360.build(file,r)
+  appendLine("REPLACEABLE • RECONSTRUCTION COMPONENT MAP")
+  appendLine("Candidates are generated-workspace components only; the imported EX4/EX5 remains read-only.")
+  val groups=r.evidence.groupBy{it.kind}.toList().sortedByDescending{it.second.size}
+  groups.forEach{(kind,rows)->
+   val avg=if(rows.isEmpty())0 else rows.sumOf{it.confidence}/rows.size
+   appendLine(kind.name+" • "+rows.size+" findings • avg-confidence="+avg+"%")
+  }
+  appendLine("Method clusters • "+methods.size)
+  methods.take(64).forEach{m->
+   appendLine("  "+m.name+" @ 0x"+m.anchorOffset.toString(16).uppercase()+" • "+m.confidence+"% • "+m.status)
+  }
+  append("Use this map to decide which inferred reconstruction blocks can be regenerated or manually replaced; it does not identify patchable protected-binary code.")
+ }
+
+ fun weakPoints(file:File,r:MqlBinaryReport360):String=buildString{
+  val s=ExStructure360.inspect(file)
+  val methods=MqlMethodCluster360.build(file,r)
+  val weakEvidence=r.evidence.filter{it.confidence<50}
+  val weakMethods=methods.filter{it.confidence<50}
+  appendLine("WEAK POINTS • EVIDENCE QUALITY")
+  appendLine("Low-confidence evidence: "+weakEvidence.size)
+  appendLine("Low-confidence method clusters: "+weakMethods.size)
+  appendLine("High-entropy windows: "+s.regions.count{it.label=="HIGH_ENTROPY"}+"/"+s.regions.size)
+  if(r.evidence.none{it.kind==MqlObjectKind.MQL_EVENT})appendLine("• Missing direct event anchors")
+  if(r.evidence.none{it.kind==MqlObjectKind.TRADING_API})appendLine("• No direct trading API evidence")
+  if(methods.isEmpty())appendLine("• No evidence-supported method cluster")
+  weakMethods.take(40).forEach{appendLine("• method "+it.name+" @ 0x"+it.anchorOffset.toString(16).uppercase()+" confidence="+it.confidence+"%")}
+  weakEvidence.sortedBy{it.confidence}.take(80).forEach{
+   appendLine("• "+it.kind+" "+(it.offset?.let{o->"0x"+o.toString(16).uppercase()}?:"N/A")+" "+it.value+" ["+it.confidence+"%]")
+  }
+  append("Weak points describe uncertainty in analysis/reconstruction, not exploitable security vulnerabilities.")
+ }
+
  fun timeWarp(file:File,r:MqlBinaryReport360):String=buildString{
   appendLine("TIMEWARP • OFFSET-ORDER EVIDENCE TIMELINE")
   appendLine("This is binary-position order, not execution time or historical time.")
