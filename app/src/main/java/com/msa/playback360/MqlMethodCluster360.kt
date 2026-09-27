@@ -9,7 +9,7 @@ object MqlMethodCluster360 {
  fun build(file:File,report:MqlBinaryReport360,radius:Long=8192):List<MethodCluster360>{
   val located=report.evidence.filter{it.offset!=null && it.value.isNotBlank()}
   val structure=ExStructure360.inspect(file)
-  val adaptive=AdaptiveRegion360.merge(structure)
+  val adaptive=AdaptiveRegionEngine360.merge(structure)
   val anchors=located.filter{it.kind==MqlObjectKind.MQL_EVENT}.ifEmpty{
    located.filter{it.kind==MqlObjectKind.TRADING_API||it.kind==MqlObjectKind.INDICATOR||it.kind==MqlObjectKind.INFERRED_FUNCTION}.sortedByDescending{it.confidence}.take(32)
   }

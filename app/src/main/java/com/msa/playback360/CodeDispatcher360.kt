@@ -80,7 +80,7 @@ object CodeDispatcher360 {
    }
    "/adaptiveregions","/codetransitions" -> {
     val s=ExStructure360.inspect(file)
-    result(command,"Adaptive structural regions",AdaptiveRegion360.render(AdaptiveRegion360.merge(s)))
+    result(command,"Adaptive structural regions",AdaptiveRegionEngine360.render(AdaptiveRegionEngine360.merge(s)))
    }
    "/codestring" -> result(command,"String evidence","Normalized string findings.",r.evidence.filter{it.kind==MqlObjectKind.STRING})
    "/codeascii" -> encoded(command,r,"ASCII")
@@ -151,7 +151,7 @@ object CodeDispatcher360 {
   val rows=r.evidence.filter{e->e.details["domains"]?.split(",")?.any{x->d.any{it.name.equals(x.trim(),true)}}==true}
   return result(c,t,"Semantic library matches with provenance.",rows)
  }
- private fun result(c:String,t:String,m:String,e:List<MqlEvidence360> = emptyList())=CodeCommandResult360(c,t,m,e)
+ private fun result(c:String,t:String,m:String,e:List<MqlEvidence360> = emptyList(),warnings:List<String> = emptyList())=CodeCommandResult360(c,t,m,e,warnings)
  private fun usage(c:String,m:String)=CodeCommandResult360(c,"Command usage",m)
  private fun parseOffset(v:String):Long?=runCatching{if(v.startsWith("0x",true))v.substring(2).toLong(16) else v.toLong()}.getOrNull()
 }

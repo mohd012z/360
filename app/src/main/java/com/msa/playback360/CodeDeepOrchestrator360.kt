@@ -5,7 +5,7 @@ import java.io.File
 object CodeDeepOrchestrator360 {
  fun run(file:File,r:MqlBinaryReport360):String=buildString {
   val structure=ExStructure360.inspect(file)
-  val adaptive=AdaptiveRegion360.merge(structure)
+  val adaptive=AdaptiveRegionEngine360.merge(structure)
   val methods=MqlMethodCluster360.build(file,r)
   val relations=CodeRelationGraph360.build(file,r)
   val numeric=NumericEvidenceScanner360.scan(file)

@@ -47,7 +47,7 @@ object NativeCompressionExtractor360 {
   appendLine("C/C++ markers: "+native.size)
   native.take(200).forEach{appendLine("0x"+it.offset.toString(16).uppercase()+" ["+it.family+" "+it.confidence+"%] "+it.marker)}
   appendLine();appendLine("GZIP candidates: "+gz.size)
-  gz.forEach{appendLine("0x"+it.offset.toString(16).uppercase()+" decoded="+it.decodedBytes+" • "+it.status+(if(it.preview.isNotBlank())+" • "+it.preview else ""))}
+  gz.forEach{appendLine("0x"+it.offset.toString(16).uppercase()+" decoded="+it.decodedBytes+" • "+it.status+(if(it.preview.isNotBlank())" • "+it.preview else ""))}
   appendLine();append("Markers are static evidence only. GZIP data is decoded only when a standard member validates; the imported target is never modified.")
  }
 

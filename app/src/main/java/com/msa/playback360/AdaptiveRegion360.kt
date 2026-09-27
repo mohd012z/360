@@ -13,7 +13,7 @@ data class AdaptiveRegion360(
  val transitionScore:Int
 )
 
-object AdaptiveRegion360 {
+object AdaptiveRegionEngine360 {
  fun merge(report:ExStructureReport360):List<AdaptiveRegion360>{
   if(report.regions.isEmpty())return emptyList()
   val out=mutableListOf<AdaptiveRegion360>()

@@ -2,7 +2,7 @@ package com.msa.playback360
 
 enum class MqlBinaryKind { EX4, EX5, MQ4, MQ5, UNKNOWN }
 enum class MqlEvidenceStatus { OBSERVED, EXTRACTED, RECONSTRUCTED, INFERRED, USER_LABEL }
-enum class MqlObjectKind { METADATA, BINARY_REGION, STRING, MQL_EVENT, TRADING_API, INDICATOR, DLL, URL, RESOURCE, NATIVE_REFERENCE, INFERRED_FUNCTION, UNKNOWN }
+enum class MqlObjectKind { METADATA, BINARY_REGION, STRING, MQL_EVENT, TRADING_API, INDICATOR, DLL, URL, RESOURCE, NATIVE_REFERENCE, INFERRED_FUNCTION, CONSTANT, UNKNOWN }
 
 data class MqlEvidence360(
  val kind:MqlObjectKind, val value:String, val offset:Long?=null, val source:String,
